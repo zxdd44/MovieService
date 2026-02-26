@@ -43,11 +43,9 @@
 * `1` — WATCHED (Просмотрено)
 * `2` — DEFERRED (Отложено)
 * `3` — ABANDONED (Брошено)
-* 
+
 ### Клонирование репозитория
 
 ```bash
 git clone https://github.com/zxdd44/MovieService.git
 cd MovieService
-
-
