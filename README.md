@@ -1,13 +1,13 @@
 # MovieService
 
 Данный сервис был создан и предназначен для управления информацией о фильмах.
+Ссылка на SonarCLoud: https://sonarcloud.io/summary/overall?id=zxdd44_MovieService&branch=main
 
 ## Технологии
 
 - Java 21
 - Spring Boot
 - Maven
-- Другие зависимости...
 
 ## Установка и запуск
 
