@@ -22,7 +22,9 @@ public class Genre {
     @ManyToMany(mappedBy = "genres")
     private Set<Movie> movies;
 
-    public Genre() { }
+    public Genre() {
+        // Default constructor for JPA
+    }
 
     public String getName() {
         return name;

@@ -15,7 +15,9 @@ public class Studio {
 
     private String name;
 
-    public Studio() { }
+    public Studio() {
+        // Default constructor for JPA
+    }
 
     public String getName() {
         return name;

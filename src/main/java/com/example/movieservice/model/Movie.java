@@ -50,7 +50,9 @@ public class Movie {
     @ManyToOne(fetch = FetchType.LAZY)
     private Studio studio;
 
-    public Movie() { }
+    public Movie() {
+        // Default constructor for JPA
+    }
 
     public Movie(String title, int year, MovieStatus status, Director director) {
         this.title = title;

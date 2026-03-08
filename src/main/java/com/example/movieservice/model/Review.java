@@ -22,7 +22,9 @@ public class Review {
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
-    public Review() { }
+    public Review() {
+        // Default constructor for JPA
+    }
 
     public String getContent() {
         return content;
