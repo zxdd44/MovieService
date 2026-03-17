@@ -1,5 +1,7 @@
 package com.example.movieservice.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.movieservice.dto.MovieDto;
 import com.example.movieservice.dto.MovieFilterKey;
 import com.example.movieservice.mapper.MovieMapper;
@@ -18,6 +20,7 @@ import java.util.Map;
 
 @Service
 public class MovieService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MovieService.class);
     private final MovieRepository movieRepository;
     private final DirectorRepository directorRepository;
     private final MovieMapper movieMapper;
@@ -32,25 +35,22 @@ public class MovieService {
     }
 
     private void invalidateCache() {
-        System.out.println("Изменение данных! Очистка in-memory индекса...");
+        LOGGER.info("Изменение данных! Очистка in-memory индекса...");
         cache.clear();
     }
 
     // Основной метод поиска с кэшированием
     public Page<MovieDto> searchComplex(String director, String genre, Pageable pageable, boolean useNative) {
         String queryType = useNative ? "NATIVE" : "JPQL";
-
-        // Формируем ключ
         MovieFilterKey key = new MovieFilterKey(director, genre,
             pageable.getPageNumber(), pageable.getPageSize(), queryType);
 
-        // Проверяем индекс
         if (cache.containsKey(key)) {
-            System.out.println("Данные отданы из кэша (HashMap)!");
+            LOGGER.info("Данные отданы из кэша (HashMap)!");
             return cache.get(key);
         }
 
-        System.out.println("Данных нет в кэше. Выполняем запрос к БД...");
+        LOGGER.info("Данных нет в кэше. Выполняем запрос к БД...");
         Page<Movie> moviesPage;
         if (useNative) {
             moviesPage = movieRepository.findByDirectorAndGenreNative(director, genre, pageable);

@@ -5,8 +5,6 @@ import com.example.movieservice.model.Genre;
 import com.example.movieservice.model.Movie;
 import org.springframework.stereotype.Component;
 
-import java.util.stream.Collectors;
-
 @Component
 public class MovieMapper {
     public MovieDto toDto(Movie movie) {
@@ -25,7 +23,7 @@ public class MovieMapper {
         if (movie.getGenres() != null) {
             dto.setGenres(movie.getGenres().stream()
                 .map(Genre::getName)
-                .collect(Collectors.toList()));
+                .toList());
         }
         return dto;
     }
