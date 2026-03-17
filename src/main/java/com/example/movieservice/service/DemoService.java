@@ -43,8 +43,7 @@ public class DemoService {
         List<Movie> movies = movieRepository.findAll();
         for (Movie movie : movies) {
             if (movie.getDirector() != null) {
-                LOGGER.info("Фильм: " + movie.getTitle() +
-                    ", Режиссер: " + movie.getDirector().getName());
+                LOGGER.info("Фильм: {}, Режиссер: {}", movie.getTitle(), movie.getDirector().getName());
             }
         }
     }
