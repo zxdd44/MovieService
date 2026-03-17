@@ -44,6 +44,7 @@ public class Movie {
     )
     private Set<Genre> genres;
 
+    //При удалении фильма должны удаляться и его отзывы (CascadeType.ALL)
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
     private List<Review> reviews;
 

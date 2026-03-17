@@ -1,35 +1,71 @@
 package com.example.movieservice.service;
 
+import com.example.movieservice.dto.MovieDto;
+import com.example.movieservice.dto.MovieFilterKey;
+import com.example.movieservice.mapper.MovieMapper;
 import com.example.movieservice.model.Director;
 import com.example.movieservice.model.Movie;
-import com.example.movieservice.dto.MovieDto;
 import com.example.movieservice.model.MovieStatus;
 import com.example.movieservice.repository.DirectorRepository;
 import com.example.movieservice.repository.MovieRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class MovieService {
     private final MovieRepository movieRepository;
     private final DirectorRepository directorRepository;
+    private final MovieMapper movieMapper;
 
-    public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository) {
+    private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
+
+    public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
+                        MovieMapper movieMapper) {
         this.movieRepository = movieRepository;
         this.directorRepository = directorRepository;
+        this.movieMapper = movieMapper;
+    }
+
+    private void invalidateCache() {
+        System.out.println("Изменение данных! Очистка in-memory индекса...");
+        cache.clear();
+    }
+
+    // Основной метод поиска с кэшированием
+    public Page<MovieDto> searchComplex(String director, String genre, Pageable pageable, boolean useNative) {
+        String queryType = useNative ? "NATIVE" : "JPQL";
+
+        // Формируем ключ
+        MovieFilterKey key = new MovieFilterKey(director, genre,
+            pageable.getPageNumber(), pageable.getPageSize(), queryType);
+
+        // Проверяем индекс
+        if (cache.containsKey(key)) {
+            System.out.println("Данные отданы из кэша (HashMap)!");
+            return cache.get(key);
+        }
+
+        System.out.println("Данных нет в кэше. Выполняем запрос к БД...");
+        Page<Movie> moviesPage;
+        if (useNative) {
+            moviesPage = movieRepository.findByDirectorAndGenreNative(director, genre, pageable);
+        } else {
+            moviesPage = movieRepository.findByDirectorAndGenreJPQL(director, genre, pageable);
+        }
+
+        Page<MovieDto> dtoPage = moviesPage.map(movieMapper::toDto);
+        cache.put(key, dtoPage);
+
+        return dtoPage;
     }
 
     public Movie getMovie(Long id) {
         return movieRepository.findById(id).orElse(null);
-    }
-
-    public List<Movie> searchByDirector(String name) {
-        return movieRepository.findAll().stream()
-            .filter(
-                m -> m.getDirector() != null && m.getDirector().getName().equalsIgnoreCase(name))
-            .toList();
     }
 
     @Transactional
@@ -44,7 +80,9 @@ public class MovieService {
             directorRepository.save(director);
             movie.setDirector(director);
         }
-        return movieRepository.save(movie);
+        Movie savedMovie = movieRepository.save(movie);
+        invalidateCache();
+        return savedMovie;
     }
 
     @Transactional
@@ -65,10 +103,13 @@ public class MovieService {
             directorRepository.save(director);
             movie.setDirector(director);
         }
-        return movieRepository.save(movie);
+        Movie updatedMovie = movieRepository.save(movie);
+        invalidateCache();
+        return updatedMovie;
     }
 
     public void deleteMovie(Long id) {
         movieRepository.deleteById(id);
+        invalidateCache();
     }
 }

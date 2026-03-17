@@ -1,10 +1,13 @@
 package com.example.movieservice.dto;
 
+import java.util.List;
+
 public class MovieDto {
     private String title;
     private String director;
     private int year;
-    private int status; // Тут статус передаем просто числом
+    private int status;
+    private List<String> genres;
 
     public String getTitle() {
         return title;
@@ -37,4 +40,10 @@ public class MovieDto {
     public void setStatus(int status) {
         this.status = status;
     }
+
+    public List<String> getGenres() {
+        return genres; }
+
+    public void setGenres(List<String> genres) {
+        this.genres = genres; }
 }

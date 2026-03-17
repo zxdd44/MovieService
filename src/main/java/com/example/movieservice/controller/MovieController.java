@@ -5,8 +5,6 @@ import com.example.movieservice.mapper.MovieMapper;
 import com.example.movieservice.service.MovieService;
 import com.example.movieservice.model.Movie;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -33,11 +34,17 @@ public class MovieController {
         return movieMapper.toDto(movieService.getMovie(id));
     }
 
-    @GetMapping("/filter") // RequestParam: /api/movies/filter?director=Nolan
-    public List<MovieDto> getByDirector(@RequestParam String director) {
-        return movieService.searchByDirector(director).stream()
-            .map(movieMapper::toDto)
-            .toList();
+    // GET /api/movies/search?director=Nolan&genre=Sci-Fi&page=0&size=5&useNative=false
+    @GetMapping("/search")
+    public Page<MovieDto> searchMovies(
+        @RequestParam String director,
+        @RequestParam String genre,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "false") boolean useNative) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return movieService.searchComplex(director, genre, pageable, useNative);
     }
 
     @PostMapping
