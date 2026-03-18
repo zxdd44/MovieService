@@ -10,6 +10,9 @@ import com.example.movieservice.model.Movie;
 import com.example.movieservice.model.MovieStatus;
 import com.example.movieservice.repository.DirectorRepository;
 import com.example.movieservice.repository.MovieRepository;
+import com.example.movieservice.model.Genre;
+import com.example.movieservice.repository.GenreRepository;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class MovieService {
@@ -24,14 +29,16 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final DirectorRepository directorRepository;
     private final MovieMapper movieMapper;
+    private final GenreRepository genreRepository;
 
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
 
     public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
-                        MovieMapper movieMapper) {
+                        MovieMapper movieMapper, GenreRepository genreRepository) {
         this.movieRepository = movieRepository;
         this.directorRepository = directorRepository;
         this.movieMapper = movieMapper;
+        this.genreRepository = genreRepository;
     }
 
     private void invalidateCache() {
@@ -52,10 +59,15 @@ public class MovieService {
 
         LOGGER.info("Данных нет в кэше. Выполняем запрос к БД...");
         Page<Movie> moviesPage;
-        if (useNative) {
-            moviesPage = movieRepository.findByDirectorAndGenreNative(director, genre, pageable);
+
+        if (genre != null && !genre.isBlank()) {
+            moviesPage = useNative ?
+                movieRepository.findByGenreNative(genre, pageable) :
+                movieRepository.findByGenreJPQL(genre, pageable);
+        } else if (director != null && !director.isBlank()) {
+            moviesPage = movieRepository.findByDirectorJPQL(director, pageable);
         } else {
-            moviesPage = movieRepository.findByDirectorAndGenreJPQL(director, genre, pageable);
+            moviesPage = movieRepository.findAll(pageable);
         }
 
         Page<MovieDto> dtoPage = moviesPage.map(movieMapper::toDto);
@@ -80,9 +92,20 @@ public class MovieService {
             directorRepository.save(director);
             movie.setDirector(director);
         }
-        Movie savedMovie = movieRepository.save(movie);
-        invalidateCache();
-        return savedMovie;
+        if (dto.getGenres() != null) {
+            Set<Genre> movieGenres = dto.getGenres().stream()
+                .map(name -> genreRepository.findByName(name)
+                    .orElseGet(() -> {
+                        Genre newGenre = new Genre();
+                        newGenre.setName(name);
+                        return genreRepository.save(newGenre); // Тут генерируется новый ID в таблице genres
+                    }))
+                .collect(Collectors.toSet());
+
+            movie.setGenres(movieGenres); // Связываем фильм с найденными/созданными жанрами
+        }
+
+        return movieRepository.save(movie);
     }
 
     @Transactional

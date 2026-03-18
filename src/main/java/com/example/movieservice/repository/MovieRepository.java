@@ -17,16 +17,14 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @EntityGraph(attributePaths = {"director", "genres"})
     List<Movie> findAll();
 
-    @Query("SELECT m FROM Movie m JOIN m.director d JOIN m.genres g WHERE d.name = :director AND g.name = :genre")
-    Page<Movie> findByDirectorAndGenreJPQL(@Param("director") String director,
-                                           @Param("genre") String genre, Pageable pageable);
+    @Query("SELECT m FROM Movie m JOIN m.genres g WHERE g.name = :genre")
+    Page<Movie> findByGenreJPQL(@Param("genre") String genre, Pageable pageable);
 
-    @Query(value = "SELECT m.* FROM movies m " +
-        "JOIN directors d ON m.director_id = d.id " +
-        "JOIN movie_genres mg ON m.id = mg.movie_id " +
-        "JOIN genres g ON mg.genre_id = g.id " +
-        "WHERE d.name = :director AND g.name = :genre",
+    @Query("SELECT m FROM Movie m JOIN m.director d WHERE d.name = :director")
+    Page<Movie> findByDirectorJPQL(@Param("director") String director, Pageable pageable);
+
+    @Query(value = "SELECT m.* FROM movies m JOIN movie_genres mg ON m.id = mg.movie_id " +
+        "JOIN genres g ON mg.genre_id = g.id WHERE g.name = :genre",
         nativeQuery = true)
-    Page<Movie> findByDirectorAndGenreNative(@Param("director") String director,
-                                             @Param("genre") String genre, Pageable pageable);
+    Page<Movie> findByGenreNative(@Param("genre") String genre, Pageable pageable);
 }

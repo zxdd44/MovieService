@@ -37,8 +37,8 @@ public class MovieController {
     // GET /api/movies/search?director=Nolan&genre=Sci-Fi&page=0&size=5&useNative=false
     @GetMapping("/search")
     public Page<MovieDto> searchMovies(
-        @RequestParam String director,
-        @RequestParam String genre,
+        @RequestParam(required = false) String director,
+        @RequestParam(required = false) String genre,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(defaultValue = "false") boolean useNative) {
