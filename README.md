@@ -64,7 +64,7 @@
 * **С @Transactional**: Любая ошибка вызывает полный Rollback, гарантируя, что база данных останется в консистентном состоянии.
 
 ## Сложные GET-запросы
-* 'http://localhost:8080/api/movies/search?genre=Comedy&page=0&size=5'
+* `http://localhost:8080/api/movies/search?genre=Comedy&page=0&size=5`
   
 ---
 
