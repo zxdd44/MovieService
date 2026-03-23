@@ -29,12 +29,11 @@ public class MovieController {
         this.movieMapper = movieMapper;
     }
 
-    @GetMapping("/{id}") // PathVariable: /api/movies/1
+    @GetMapping("/{id}")
     public MovieDto getById(@PathVariable Long id) {
         return movieMapper.toDto(movieService.getMovie(id));
     }
 
-    // GET /api/movies/search?director=Nolan&genre=Sci-Fi&page=0&size=5&useNative=false
     @GetMapping("/search")
     public Page<MovieDto> searchMovies(
         @RequestParam(required = false) String director,

@@ -46,7 +46,6 @@ public class MovieService {
         cache.clear();
     }
 
-    // Основной метод поиска с кэшированием
     public Page<MovieDto> searchComplex(String director, String genre, Pageable pageable, boolean useNative) {
         String queryType = useNative ? "NATIVE" : "JPQL";
         MovieFilterKey key = new MovieFilterKey(director, genre,
@@ -98,14 +97,15 @@ public class MovieService {
                     .orElseGet(() -> {
                         Genre newGenre = new Genre();
                         newGenre.setName(name);
-                        return genreRepository.save(newGenre); // Тут генерируется новый ID в таблице genres
+                        return genreRepository.save(newGenre);
                     }))
                 .collect(Collectors.toSet());
-
-            movie.setGenres(movieGenres); // Связываем фильм с найденными/созданными жанрами
+            movie.setGenres(movieGenres);
         }
 
-        return movieRepository.save(movie);
+        Movie savedMovie = movieRepository.save(movie);
+        invalidateCache();
+        return savedMovie;
     }
 
     @Transactional
