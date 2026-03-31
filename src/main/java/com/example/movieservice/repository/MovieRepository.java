@@ -13,16 +13,20 @@ import java.util.List;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
+    boolean existsByTitle(String title);
     @Override
     @EntityGraph(attributePaths = {"director", "genres"})
     List<Movie> findAll();
 
+    @EntityGraph(attributePaths = {"director", "genres"})
     @Query("SELECT m FROM Movie m JOIN m.genres g WHERE g.name = :genre")
     Page<Movie> findByGenreJPQL(@Param("genre") String genre, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"director", "genres"})
     @Query("SELECT m FROM Movie m JOIN m.director d WHERE d.name = :director")
     Page<Movie> findByDirectorJPQL(@Param("director") String director, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"director", "genres"})
     @Query(value = "SELECT m.* FROM movies m JOIN movie_genres mg ON m.id = mg.movie_id " +
         "JOIN genres g ON mg.genre_id = g.id WHERE g.name = :genre",
         nativeQuery = true)

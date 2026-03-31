@@ -12,6 +12,7 @@ import com.example.movieservice.repository.DirectorRepository;
 import com.example.movieservice.repository.MovieRepository;
 import com.example.movieservice.model.Genre;
 import com.example.movieservice.repository.GenreRepository;
+import com.example.movieservice.exception.AlreadyExistsException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -81,6 +82,9 @@ public class MovieService {
 
     @Transactional
     public Movie createMovie(MovieDto dto) {
+        if (movieRepository.existsByTitle(dto.getTitle())) {
+            throw new AlreadyExistsException("Фильм с данным названием уже существует!");
+        }
         Movie movie = new Movie();
         movie.setTitle(dto.getTitle());
         movie.setYear(dto.getYear());
