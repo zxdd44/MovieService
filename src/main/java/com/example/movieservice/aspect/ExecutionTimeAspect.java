@@ -14,13 +14,13 @@ public class ExecutionTimeAspect {
 
     @Around("execution(* com.example.movieservice.service.MovieService.*(..))")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        if (!LOGGER.isInfoEnabled()) {
+            return joinPoint.proceed();
+        }
         long startTime = System.currentTimeMillis();
-
         Object proceed = joinPoint.proceed();
-
         long executionTime = System.currentTimeMillis() - startTime;
         LOGGER.info("Метод [{}] выполнен за {} ms", joinPoint.getSignature().toShortString(), executionTime);
-
         return proceed;
     }
 }
