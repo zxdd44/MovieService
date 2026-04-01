@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
@@ -17,6 +18,10 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Override
     @EntityGraph(attributePaths = {"director", "genres"})
     List<Movie> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"director", "genres"})
+    Optional<Movie> findById(Long id);
 
     @EntityGraph(attributePaths = {"director", "genres"})
     @Query("SELECT m FROM Movie m JOIN m.genres g WHERE g.name = :genre")

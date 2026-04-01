@@ -31,7 +31,6 @@ public class MovieService {
     private final DirectorRepository directorRepository;
     private final MovieMapper movieMapper;
     private final GenreRepository genreRepository;
-
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
 
     public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
@@ -77,7 +76,11 @@ public class MovieService {
     }
 
     public Movie getMovie(Long id) {
-        return movieRepository.findById(id).orElse(null);
+        return movieRepository.findById(id)
+            .orElseThrow(() -> {
+                LOGGER.error("Фильм с ID {} не найден в базе данных!", id);
+                return new RuntimeException("Фильм не найден");
+            });
     }
 
     @Transactional

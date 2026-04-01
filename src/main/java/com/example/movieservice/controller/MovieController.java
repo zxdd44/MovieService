@@ -36,8 +36,11 @@ public class MovieController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить фильм по ID")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404",
+        description = "Фильм не найден")
     public MovieDto getById(@PathVariable Long id) {
-        return movieMapper.toDto(movieService.getMovie(id));
+        Movie movie = movieService.getMovie(id);
+        return movieMapper.toDto(movie);
     }
 
     @GetMapping("/search")
