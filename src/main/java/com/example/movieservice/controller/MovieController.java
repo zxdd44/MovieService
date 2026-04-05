@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -32,6 +34,13 @@ public class MovieController {
     public MovieController(MovieService movieService, MovieMapper movieMapper) {
         this.movieService = movieService;
         this.movieMapper = movieMapper;
+    }
+
+    @PostMapping("/bulk")
+    @Operation(summary = "Массовое создание фильмов", description = "Принимает список DTO и сохраняет их в базу")
+    public ResponseEntity<List<Movie>> createMoviesBulk(@RequestBody List<MovieDto> dtos) {
+        List<Movie> createdMovies = movieService.createMoviesBulk(dtos);
+        return ResponseEntity.ok(createdMovies);
     }
 
     @GetMapping("/{id}")

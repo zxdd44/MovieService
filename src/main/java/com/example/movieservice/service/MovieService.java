@@ -20,8 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,31 +87,7 @@ public class MovieService {
 
     @Transactional
     public Movie createMovie(MovieDto dto) {
-        if (movieRepository.existsByTitle(dto.getTitle())) {
-            throw new AlreadyExistsException("Фильм с данным названием уже существует!");
-        }
-        Movie movie = new Movie();
-        movie.setTitle(dto.getTitle());
-        movie.setYear(dto.getYear());
-        movie.setStatus(MovieStatus.values()[dto.getStatus()]);
-        if (dto.getDirector() != null && !dto.getDirector().isBlank()) {
-            Director director = new Director();
-            director.setName(dto.getDirector());
-            directorRepository.save(director);
-            movie.setDirector(director);
-        }
-        if (dto.getGenres() != null) {
-            Set<Genre> movieGenres = dto.getGenres().stream()
-                .map(name -> genreRepository.findByName(name)
-                    .orElseGet(() -> {
-                        Genre newGenre = new Genre();
-                        newGenre.setName(name);
-                        return genreRepository.save(newGenre);
-                    }))
-                .collect(Collectors.toSet());
-            movie.setGenres(movieGenres);
-        }
-
+        Movie movie = convertToEntity(dto);
         Movie savedMovie = movieRepository.save(movie);
         invalidateCache();
         return savedMovie;
@@ -141,5 +119,53 @@ public class MovieService {
     public void deleteMovie(Long id) {
         movieRepository.deleteById(id);
         invalidateCache();
+    }
+
+    @Transactional
+    public List<Movie> createMoviesBulk(List<MovieDto> dtos) {
+        LOGGER.info("Начало массового импорта {} фильмов", dtos.size());
+
+        List<Movie> moviesToSave = dtos.stream()
+            .map(this::convertToEntity)
+            .collect(Collectors.toList());
+
+        List<Movie> savedMovies = movieRepository.saveAll(moviesToSave);
+        invalidateCache();
+
+        LOGGER.info("Успешно импортировано {} фильмов", savedMovies.size());
+        return savedMovies;
+    }
+
+    private Movie convertToEntity(MovieDto dto) {
+        if (movieRepository.existsByTitle(dto.getTitle())) {
+            throw new AlreadyExistsException("Фильм с таким названием уже существует!");
+        }
+
+        Movie movie = new Movie();
+        movie.setTitle(dto.getTitle());
+        movie.setYear(dto.getYear());
+        movie.setStatus(MovieStatus.values()[dto.getStatus()]);
+
+        Optional.ofNullable(dto.getDirector())
+            .filter(name -> !name.trim().isEmpty())
+            .ifPresent(name -> {
+                Director director = new Director();
+                director.setName(name);
+                directorRepository.save(director);
+                movie.setDirector(director);
+            });
+
+        if (dto.getGenres() != null) {
+            Set<Genre> movieGenres = dto.getGenres().stream()
+                .map(name -> genreRepository.findByName(name)
+                    .orElseGet(() -> {
+                        Genre newGenre = new Genre();
+                        newGenre.setName(name);
+                        return genreRepository.save(newGenre);
+                    }))
+                .collect(Collectors.toSet());
+            movie.setGenres(movieGenres);
+        }
+        return movie;
     }
 }
