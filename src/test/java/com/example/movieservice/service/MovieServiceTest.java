@@ -6,6 +6,7 @@ import com.example.movieservice.mapper.MovieMapper;
 import com.example.movieservice.model.Director;
 import com.example.movieservice.model.Genre;
 import com.example.movieservice.model.Movie;
+import com.example.movieservice.model.MovieStatus;
 import com.example.movieservice.repository.DirectorRepository;
 import com.example.movieservice.repository.GenreRepository;
 import com.example.movieservice.repository.MovieRepository;
@@ -14,6 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,28 +28,134 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MovieServiceTest {
 
-    @Mock
-    private MovieRepository movieRepository;
+    @Mock private MovieRepository movieRepository;
+    @Mock private DirectorRepository directorRepository;
+    @Mock private GenreRepository genreRepository;
+    @Mock private MovieMapper movieMapper;
+    @InjectMocks private MovieService movieService;
 
-    @Mock
-    private DirectorRepository directorRepository;
+    @Test
+    void testSearchComplex_AllBranchesAndCache() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Movie movie = new Movie();
+        MovieDto dto = new MovieDto();
+        Page<Movie> page = new PageImpl<>(List.of(movie));
 
-    @Mock
-    private GenreRepository genreRepository;
+        when(movieRepository.findAll(pageable)).thenReturn(page);
+        when(movieMapper.toDto(any())).thenReturn(dto);
 
-    @Mock
-    private MovieMapper movieMapper;
+        // Первый вызов — идем в БД
+        Page<MovieDto> result1 = movieService.searchComplex(null, null, pageable, false);
+        // Второй вызов — берем из кэша (покрывает ветку cache.containsKey)
+        Page<MovieDto> result2 = movieService.searchComplex(null, null, pageable, false);
 
-    @InjectMocks
-    private MovieService movieService;
+        assertNotNull(result1);
+        assertEquals(result1, result2);
+        verify(movieRepository, times(1)).findAll(pageable);
+    }
+
+    @Test
+    void testSearchComplex_ByGenreNative() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(movieRepository.findByGenreNative(eq("Action"), any())).thenReturn(Page.empty());
+
+        movieService.searchComplex(null, "Action", pageable, true);
+
+        verify(movieRepository).findByGenreNative(eq("Action"), any());
+    }
+
+    @Test
+    void testSearchComplex_ByDirector() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(movieRepository.findByDirectorJPQL(eq("Nolan"), any())).thenReturn(Page.empty());
+
+        movieService.searchComplex("Nolan", "", pageable, false);
+
+        verify(movieRepository).findByDirectorJPQL(eq("Nolan"), any());
+    }
+
+    @Test
+    void testGetMovie_Success() {
+        Movie movie = new Movie();
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        assertEquals(movie, movieService.getMovie(1L));
+    }
+
+    @Test
+    void testGetMovie_NotFound_ThrowsException() {
+        when(movieRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> movieService.getMovie(1L));
+    }
+
+    @Test
+    void testDeleteMovie() {
+        movieService.deleteMovie(1L);
+        verify(movieRepository).deleteById(1L);
+    }
+
+    @Test
+    void testUpdateMovie_Success_FullUpdate() {
+        Movie movie = new Movie();
+        movie.setDirector(new Director());
+        MovieDto dto = new MovieDto();
+        dto.setTitle("New Title");
+        dto.setStatus(1);
+        dto.setDirector("New Director");
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Movie result = movieService.updateMovie(1L, dto);
+
+        assertEquals("New Title", result.getTitle());
+        assertEquals(MovieStatus.values()[1], result.getStatus());
+        verify(directorRepository).save(any());
+    }
+
+    @Test
+    void testUpdateMovie_NotFound() {
+        when(movieRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> movieService.updateMovie(1L, new MovieDto()));
+    }
+
+    @Test
+    void testCreateMovie_SuccessWithNewGenre() {
+        MovieDto dto = new MovieDto();
+        dto.setTitle("Inception");
+        dto.setStatus(0);
+        dto.setGenres(List.of("Sci-Fi"));
+
+        when(movieRepository.existsByTitle("Inception")).thenReturn(false);
+        when(genreRepository.findByName("Sci-Fi")).thenReturn(Optional.empty());
+        when(genreRepository.save(any(Genre.class))).thenAnswer(i -> i.getArgument(0));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(i -> i.getArgument(0));
+
+        Movie result = movieService.createMovie(dto);
+
+        assertNotNull(result);
+        assertEquals("Inception", result.getTitle());
+        verify(genreRepository).save(any());
+    }
+
+    @Test
+    void testCreateMoviesBulk_ThrowsAlreadyExists() {
+        MovieDto dto = new MovieDto();
+        dto.setTitle("Existing Movie");
+
+        when(movieRepository.existsByTitle("Existing Movie")).thenReturn(true);
+
+        List<MovieDto> dtos = List.of(dto); // Вынесли из лямбды для Sonar!
+        assertThrows(AlreadyExistsException.class, () -> movieService.createMoviesBulk(dtos));
+    }
 
     @Test
     void testCreateMoviesBulkFullDataCoversAllBranches() {
@@ -114,10 +225,35 @@ class MovieServiceTest {
         dto.setTitle("The Matrix");
 
         when(movieRepository.existsByTitle("The Matrix")).thenReturn(true);
-
+        List<MovieDto> dtos = List.of(dto);
         assertThrows(AlreadyExistsException.class, () -> {
-            movieService.createMoviesBulk(List.of(dto));
+            movieService.createMoviesBulk(dtos);
         }, "Должно быть выброшено AlreadyExistsException, если фильм с таким названием уже есть");
         verify(movieRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void testSearchComplex_ByGenreJPQL() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(movieRepository.findByGenreJPQL(eq("Drama"), any())).thenReturn(Page.empty());
+
+        movieService.searchComplex(null, "Drama", pageable, false);
+
+        verify(movieRepository).findByGenreJPQL(eq("Drama"), any());
+    }
+
+    @Test
+    void testUpdateMovie_AddNewDirector() {
+        Movie movieWithoutDirector = new Movie(); // Режиссер null
+        MovieDto dto = new MovieDto();
+        dto.setDirector("James Cameron");
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movieWithoutDirector));
+        when(movieRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        movieService.updateMovie(1L, dto);
+
+        verify(directorRepository).save(any());
+        assertNotNull(movieWithoutDirector.getDirector());
     }
 }
