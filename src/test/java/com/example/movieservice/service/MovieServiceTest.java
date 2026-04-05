@@ -53,9 +53,7 @@ class MovieServiceTest {
         when(movieRepository.findAll(pageable)).thenReturn(page);
         when(movieMapper.toDto(any())).thenReturn(dto);
 
-        // Первый вызов — идем в БД
         Page<MovieDto> result1 = movieService.searchComplex(null, null, pageable, false);
-        // Второй вызов — берем из кэша (покрывает ветку cache.containsKey)
         Page<MovieDto> result2 = movieService.searchComplex(null, null, pageable, false);
 
         assertNotNull(result1);
@@ -123,8 +121,9 @@ class MovieServiceTest {
 
     @Test
     void testUpdateMovie_NotFound() {
+        MovieDto dto = new MovieDto();
         when(movieRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> movieService.updateMovie(1L, new MovieDto()));
+        assertThrows(RuntimeException.class, () -> movieService.updateMovie(1L, dto));
     }
 
     @Test
