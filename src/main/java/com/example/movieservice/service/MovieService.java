@@ -127,7 +127,7 @@ public class MovieService {
 
         List<Movie> moviesToSave = dtos.stream()
             .map(this::convertToEntity)
-            .collect(Collectors.toList());
+            .toList();
 
         List<Movie> savedMovies = movieRepository.saveAll(moviesToSave);
         invalidateCache();

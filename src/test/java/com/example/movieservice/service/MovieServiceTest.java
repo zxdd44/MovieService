@@ -115,7 +115,9 @@ class MovieServiceTest {
 
         when(movieRepository.existsByTitle("The Matrix")).thenReturn(true);
 
-        assertThrows(AlreadyExistsException.class, () -> movieService.createMoviesBulk(List.of(dto)));
+        assertThrows(AlreadyExistsException.class, () -> {
+            movieService.createMoviesBulk(List.of(dto));
+        }, "Должно быть выброшено AlreadyExistsException, если фильм с таким названием уже есть");
         verify(movieRepository, never()).saveAll(anyList());
     }
 }
