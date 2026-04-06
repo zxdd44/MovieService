@@ -284,4 +284,44 @@ class MovieServiceTest {
         movieService.searchComplex("   ", null, pageable, false);
         verify(movieRepository).findAll(pageable);
     }
+
+    @Test
+    void testSearchComplex_CacheHit() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Movie> emptyPage = new PageImpl<>(List.of());
+        org.mockito.Mockito.lenient().when(movieMapper.toDto(any())).thenReturn(new MovieDto());
+        when(movieRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+        movieService.searchComplex(null, null, pageable, false);
+        movieService.searchComplex(null, null, pageable, false);
+        verify(movieRepository, times(1)).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void testUpdateMovie_StatusTooHigh() {
+        Movie movie = new Movie();
+        movie.setTitle("Old Title");
+        movie.setStatus(MovieStatus.WATCHED);
+        MovieDto dto = new MovieDto();
+        dto.setTitle("New Title");
+        dto.setStatus(999);
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(i -> i.getArgument(0));
+        Movie result = movieService.updateMovie(1L, dto);
+        assertEquals(MovieStatus.WATCHED, result.getStatus());
+    }
+
+    @Test
+    void testCreateMovie_WithExistingGenre() {
+        MovieDto dto = new MovieDto();
+        dto.setTitle("Inception");
+        dto.setStatus(0);
+        dto.setGenres(List.of("Action"));
+        Genre existingGenre = new Genre();
+        existingGenre.setName("Action");
+        when(movieRepository.existsByTitle("Inception")).thenReturn(false);
+        when(genreRepository.findByName("Action")).thenReturn(Optional.of(existingGenre));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(i -> i.getArgument(0));
+        movieService.createMovie(dto);
+        verify(genreRepository, never()).save(any(Genre.class));
+    }
 }
