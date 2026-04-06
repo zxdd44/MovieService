@@ -255,4 +255,33 @@ class MovieServiceTest {
         verify(directorRepository).save(any());
         assertNotNull(movieWithoutDirector.getDirector());
     }
+
+    @Test
+    void testUpdateMovie_SkipInvalidStatusAndNullDirector() {
+        Movie movie = new Movie();
+        movie.setTitle("Old Title");
+        movie.setYear(2000);
+        movie.setStatus(MovieStatus.values()[0]);
+        MovieDto dto = new MovieDto();
+        dto.setTitle("Updated Title");
+        dto.setYear(2025);
+        dto.setStatus(-1);
+        dto.setDirector(null);
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(i -> i.getArgument(0));
+        Movie result = movieService.updateMovie(1L, dto);
+        assertEquals("Updated Title", result.getTitle());
+        assertEquals(2025, result.getYear());
+        assertEquals(MovieStatus.values()[0], result.getStatus());
+        assertNull(result.getDirector());
+        verify(directorRepository, never()).save(any());
+    }
+
+    @Test
+    void testSearchComplex_BlankDirectorAndNullGenre() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(movieRepository.findAll(pageable)).thenReturn(Page.empty());
+        movieService.searchComplex("   ", null, pageable, false);
+        verify(movieRepository).findAll(pageable);
+    }
 }
