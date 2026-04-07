@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 @RestController
 @RequestMapping("/demo")
@@ -27,6 +28,12 @@ public class DemoController {
     @PostMapping("/no-rollback")
     public void testNoRollback(@RequestBody MovieDto dto) {
         demoService.createWithoutTransaction(dto);
+    }
+
+    // URL: POST http://localhost:8080/demo/noBulk
+    @PostMapping("/noBulk")
+    public void testBulkNoTx(@RequestBody List<MovieDto> dtos) {
+        demoService.createBulkWithoutTransaction(dtos);
     }
 
     // URL: GET http://localhost:8080/demo/NPO
