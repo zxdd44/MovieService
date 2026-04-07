@@ -90,4 +90,27 @@ class DemoServiceTest {
         verify(movieRepository, times(1)).save(any(Movie.class));
         verify(directorRepository, times(1)).save(any(Director.class));
     }
+
+    @Test
+    void testCreateBulkWithoutTransaction_FullSuccessAndEdgeCases() {
+        MovieDto validDto = new MovieDto();
+        validDto.setTitle("Inception");
+        validDto.setDirector("Nolan");
+        validDto.setYear(2010);
+        validDto.setStatus(0);
+        MovieDto nullTitleDto = new MovieDto();
+        nullTitleDto.setTitle(null);
+        nullTitleDto.setDirector("");
+        MovieDto invalidStatusDto = new MovieDto();
+        invalidStatusDto.setTitle("Strange Movie");
+        invalidStatusDto.setStatus(-1);
+        MovieDto highStatusDto = new MovieDto();
+        highStatusDto.setTitle("Future Movie");
+        highStatusDto.setStatus(999);
+        List<MovieDto> dtos = List.of(validDto, nullTitleDto, invalidStatusDto, highStatusDto);
+        when(movieRepository.existsByTitle(any())).thenReturn(false);
+        demoService.createBulkWithoutTransaction(dtos);
+        verify(movieRepository, times(4)).save(any(Movie.class));
+        verify(directorRepository, times(1)).save(any(Director.class));
+    }
 }

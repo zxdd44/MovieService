@@ -122,7 +122,7 @@ public class MovieService {
     }
 
     @Transactional
-    public List<Movie> createMoviesBulk(List<MovieDto> dtos) {
+    public List<Movie> g(List<MovieDto> dtos) {
         LOGGER.info("Начало массового импорта {} фильмов", dtos.size());
 
         List<Movie> moviesToSave = dtos.stream()
