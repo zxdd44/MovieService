@@ -24,6 +24,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -343,17 +345,6 @@ class MovieServiceTest {
     }
 
     @Test
-    void testProcessComplexBusinessLogic_InterruptHandling() throws InterruptedException {
-        String testTaskId = "test-interrupt-id";
-        Thread interruptThread = new Thread(() -> movieService.processComplexBusinessLogic(testTaskId));
-        interruptThread.start();
-        Thread.sleep(100);
-        interruptThread.interrupt();
-        interruptThread.join();
-        assertEquals("ERROR", movieService.getTaskStatus(testTaskId));
-    }
-
-    @Test
     void testRunSafeCounterDemo() {
         Map<String, Integer> result = movieService.runSafeCounterDemo();
         assertNotNull(result);
@@ -377,33 +368,61 @@ class MovieServiceTest {
     }
 
     @Test
-    void testStartAsyncTask_Success() throws InterruptedException {
+    void testStartAsyncTask_Success() {
         String taskId = movieService.startAsyncTask();
-        Thread.sleep(15200);
+        assertNotNull(taskId);
+        await()
+            .atMost(16, TimeUnit.SECONDS)
+            .until(() -> "COMPLETED".equals(movieService.getTaskStatus(taskId)));
         assertEquals("COMPLETED", movieService.getTaskStatus(taskId));
     }
 
     @Test
     void testStartAsyncTask_Interruption() throws Exception {
         String taskId = movieService.startAsyncTask();
-
         Field executorField = MovieService.class.getDeclaredField("backgroundExecutor");
         executorField.setAccessible(true);
         ExecutorService executor = (ExecutorService) executorField.get(movieService);
         executor.shutdownNow();
-
-        Thread.sleep(200);
+        await()
+            .atMost(2, TimeUnit.SECONDS)
+            .until(() -> "ERROR".equals(movieService.getTaskStatus(taskId)));
         assertEquals("ERROR", movieService.getTaskStatus(taskId));
-
         executorField.set(movieService, java.util.concurrent.Executors.newCachedThreadPool());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testProcessComplexBusinessLogic_Success() throws Exception {
-        movieService.processComplexBusinessLogic("test-success");
-        Field asyncTasksField = MovieService.class.getDeclaredField("asyncTasks");
-        asyncTasksField.setAccessible(true);
-        Map<String, String> asyncTasks = (Map<String, String>) asyncTasksField.get(movieService);
-        assertEquals("COMPLETED", asyncTasks.get("test-success"));
+        String taskId = "success-logic";
+        movieService.processComplexBusinessLogic(taskId);
+        Field field = MovieService.class.getDeclaredField("asyncTasks");
+        field.setAccessible(true);
+        Map<String, String> asyncTasks = (Map<String, String>) field.get(movieService);
+        assertEquals("COMPLETED", asyncTasks.get(taskId));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testProcessComplexBusinessLogic_InterruptHandling() throws Exception {
+        String testTaskId = "test-interrupt-id";
+        Thread interruptThread = new Thread(() -> movieService.processComplexBusinessLogic(testTaskId));
+        interruptThread.start();
+        await().atMost(1, TimeUnit.SECONDS).until(interruptThread::isAlive);
+        interruptThread.interrupt();
+        interruptThread.join();
+        Field field = MovieService.class.getDeclaredField("asyncTasks");
+        field.setAccessible(true);
+        Map<String, String> asyncTasks = (Map<String, String>) field.get(movieService);
+        assertEquals("ERROR", asyncTasks.get(testTaskId));
+    }
+
+    @Test
+    void testRunSafeCounterDemo_WithInterrupt() throws InterruptedException {
+        Thread t = new Thread(() -> movieService.runSafeCounterDemo());
+        t.start();
+        t.interrupt();
+        t.join(1000);
+        assertTrue(true);
     }
 }

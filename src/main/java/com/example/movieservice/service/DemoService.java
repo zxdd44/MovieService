@@ -25,7 +25,6 @@ public class DemoService {
         LoggerFactory.getLogger(DemoService.class);
     private final DirectorRepository directorRepository;
     private final MovieRepository movieRepository;
-    private int unsafeCounter = 0;
 
     public DemoService(DirectorRepository directorRepository, MovieRepository movieRepository) {
         this.directorRepository = directorRepository;
@@ -84,7 +83,7 @@ public class DemoService {
     }
 
     public Map<String, Integer> runUnsafeRaceConditionDemo() {
-        unsafeCounter = 0;
+        final int[] unsafeCounter = {0};
         int threadsCount = 50;
         int iterationsPerThread = 2000;
 
@@ -92,7 +91,7 @@ public class DemoService {
             for (int i = 0; i < threadsCount; i++) {
                 executor.submit(() -> {
                     for (int j = 0; j < iterationsPerThread; j++) {
-                        unsafeCounter++;
+                        unsafeCounter[0]++;
                     }
                 });
             }
@@ -105,7 +104,7 @@ public class DemoService {
 
         Map<String, Integer> results = new HashMap<>();
         results.put("1_Expected", threadsCount * iterationsPerThread);
-        results.put("2_UnsafeCounter_Result", unsafeCounter);
+        results.put("2_UnsafeCounter_Result", unsafeCounter[0]);
         return results;
     }
 }
