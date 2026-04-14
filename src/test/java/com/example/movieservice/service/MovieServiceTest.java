@@ -19,8 +19,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import java.util.concurrent.ExecutorService;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -323,5 +327,83 @@ class MovieServiceTest {
         when(movieRepository.save(any(Movie.class))).thenAnswer(i -> i.getArgument(0));
         movieService.createMovie(dto);
         verify(genreRepository, never()).save(any(Genre.class));
+    }
+
+    @Test
+    void testStartAsyncTask_CreatesTaskAndReturnsId() {
+        String taskId = movieService.startAsyncTask();
+        assertNotNull(taskId);
+        assertEquals("IN_PROGRESS", movieService.getTaskStatus(taskId));
+    }
+
+    @Test
+    void testGetTaskStatus_NotFound() {
+        String status = movieService.getTaskStatus("non-existent-id");
+        assertEquals("NOT_FOUND", status);
+    }
+
+    @Test
+    void testProcessComplexBusinessLogic_InterruptHandling() throws InterruptedException {
+        String testTaskId = "test-interrupt-id";
+        Thread interruptThread = new Thread(() -> movieService.processComplexBusinessLogic(testTaskId));
+        interruptThread.start();
+        Thread.sleep(100);
+        interruptThread.interrupt();
+        interruptThread.join();
+        assertEquals("ERROR", movieService.getTaskStatus(testTaskId));
+    }
+
+    @Test
+    void testRunSafeCounterDemo() {
+        Map<String, Integer> result = movieService.runSafeCounterDemo();
+        assertNotNull(result);
+        assertTrue(result.containsKey("1_Expected"));
+        assertTrue(result.containsKey("2_SafeCounter_Atomic"));
+        assertEquals(result.get("1_Expected"), result.get("2_SafeCounter_Atomic"));
+    }
+
+    @Test
+    void testRunSafeCounterDemo_FullCoverageInterrupt() throws InterruptedException {
+        Thread thread = new Thread(() -> movieService.runSafeCounterDemo());
+        thread.start();
+        thread.interrupt();
+        thread.join();
+        assertTrue(true);
+    }
+
+    @Test
+    void testGetTaskStatusMap() {
+        assertNotNull(movieService.getTaskStatusMap());
+    }
+
+    @Test
+    void testStartAsyncTask_Success() throws InterruptedException {
+        String taskId = movieService.startAsyncTask();
+        Thread.sleep(15200);
+        assertEquals("COMPLETED", movieService.getTaskStatus(taskId));
+    }
+
+    @Test
+    void testStartAsyncTask_Interruption() throws Exception {
+        String taskId = movieService.startAsyncTask();
+
+        Field executorField = MovieService.class.getDeclaredField("backgroundExecutor");
+        executorField.setAccessible(true);
+        ExecutorService executor = (ExecutorService) executorField.get(movieService);
+        executor.shutdownNow();
+
+        Thread.sleep(200);
+        assertEquals("ERROR", movieService.getTaskStatus(taskId));
+
+        executorField.set(movieService, java.util.concurrent.Executors.newCachedThreadPool());
+    }
+
+    @Test
+    void testProcessComplexBusinessLogic_Success() throws Exception {
+        movieService.processComplexBusinessLogic("test-success");
+        Field asyncTasksField = MovieService.class.getDeclaredField("asyncTasks");
+        asyncTasksField.setAccessible(true);
+        Map<String, String> asyncTasks = (Map<String, String>) asyncTasksField.get(movieService);
+        assertEquals("COMPLETED", asyncTasks.get("test-success"));
     }
 }

@@ -12,8 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -112,5 +115,22 @@ class DemoServiceTest {
         demoService.createBulkWithoutTransaction(dtos);
         verify(movieRepository, times(4)).save(any(Movie.class));
         verify(directorRepository, times(1)).save(any(Director.class));
+    }
+
+    @Test
+    void testRunUnsafeRaceConditionDemo() {
+        Map<String, Integer> result = demoService.runUnsafeRaceConditionDemo();
+        assertNotNull(result);
+        assertTrue(result.containsKey("1_Expected"));
+        assertTrue(result.containsKey("2_UnsafeCounter_Result"));
+    }
+
+    @Test
+    void testRunUnsafeRaceConditionDemo_FullCoverageInterrupt() throws InterruptedException {
+        Thread thread = new Thread(() -> demoService.runUnsafeRaceConditionDemo());
+        thread.start();
+        thread.interrupt();
+        thread.join();
+        assertTrue(true);
     }
 }

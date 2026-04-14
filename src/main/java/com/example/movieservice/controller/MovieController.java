@@ -22,7 +22,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -85,5 +88,41 @@ public class MovieController {
     @Operation(summary = "Удалить фильм")
     public void deleteMovie(@PathVariable Long id) {
         movieService.deleteMovie(id);
+    }
+
+    @PostMapping("/async/start")
+    @Operation(summary = "Запуск долгой фоновой задачи")
+    public ResponseEntity<Map<String, String>> startAsyncTask() {
+        String taskId = movieService.startAsyncTask();
+        Map<String, String> response = new HashMap<>();
+        response.put("taskId", taskId);
+        response.put("status", "IN_PROGRESS");
+        response.put("message", "Задача успешно запущена и выполняется в фоновом режиме");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/async/status/{taskId}")
+    @Operation(summary = "Проверить статус задачи")
+    public ResponseEntity<Map<String, String>> checkTaskStatus(@PathVariable String taskId) {
+        String status = movieService.getTaskStatus(taskId);
+        Map<String, String> response = new HashMap<>();
+        response.put("taskId", taskId);
+        response.put("status", status);
+        String message = switch (status) {
+            case "IN_PROGRESS" -> "Задача всё еще выполняется. Подождите немного.";
+            case "COMPLETED" -> "Задача успешно завершена.";
+            case "ERROR" -> "Произошла ошибка при выполнении задачи.";
+            default -> "Задача с таким ID не найдена.";
+        };
+        response.put("message", message);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/race-condition-solved")
+    @Operation(summary = "Демонстрация потокобезопасного счетчика", description =
+        "Запускает 50 потоков, которые безопасно увеличивают Atomic счетчик")
+    public ResponseEntity<Map<String, Integer>> demoRaceConditionSolved() {
+        return ResponseEntity.ok(movieService.runSafeCounterDemo());
     }
 }

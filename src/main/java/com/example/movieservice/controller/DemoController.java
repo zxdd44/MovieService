@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/demo")
@@ -41,5 +42,11 @@ public class DemoController {
     public String testN1() {
         demoService.demonstrateNPO();
         return "Смотри в консоль IDEA!";
+    }
+
+    // URL: GET http://localhost:8080/demo/race-condition-unsafe
+    @GetMapping("/race-condition-unsafe")
+    public Map<String, Integer> demoRaceConditionUnsafe() {
+        return demoService.runUnsafeRaceConditionDemo();
     }
 }
