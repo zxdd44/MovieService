@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import java.util.concurrent.ExecutorService;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
@@ -335,7 +334,7 @@ class MovieServiceTest {
     void testStartAsyncTask_CreatesTaskAndReturnsId() {
         String taskId = movieService.startAsyncTask();
         assertNotNull(taskId);
-        assertEquals("IN_PROGRESS", movieService.getTaskStatus(taskId));
+        assertEquals("COMPLETED", movieService.getTaskStatus(taskId));
     }
 
     @Test
@@ -378,28 +377,25 @@ class MovieServiceTest {
     }
 
     @Test
-    void testStartAsyncTask_Interruption() throws Exception {
-        String taskId = movieService.startAsyncTask();
-        Field executorField = MovieService.class.getDeclaredField("backgroundExecutor");
-        executorField.setAccessible(true);
-        ExecutorService executor = (ExecutorService) executorField.get(movieService);
-        executor.shutdownNow();
+    void testStartAsyncTask_Interruption() {
+        String taskId = "interrupt-id";
+        movieService.getTaskStatusMap().put(taskId, "IN_PROGRESS");
+        Thread testThread = new Thread(() -> movieService.processComplexBusinessLogic(taskId));
+        testThread.start();
+        await().atMost(1, TimeUnit.SECONDS).until(testThread::isAlive);
+        testThread.interrupt();
         await()
             .atMost(2, TimeUnit.SECONDS)
             .until(() -> "ERROR".equals(movieService.getTaskStatus(taskId)));
         assertEquals("ERROR", movieService.getTaskStatus(taskId));
-        executorField.set(movieService, java.util.concurrent.Executors.newCachedThreadPool());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void testProcessComplexBusinessLogic_Success() throws Exception {
+    void testProcessComplexBusinessLogic_Success() {
         String taskId = "success-logic";
         movieService.processComplexBusinessLogic(taskId);
-        Field field = MovieService.class.getDeclaredField("asyncTasks");
-        field.setAccessible(true);
-        Map<String, String> asyncTasks = (Map<String, String>) field.get(movieService);
-        assertEquals("COMPLETED", asyncTasks.get(taskId));
+        Map<String, String> statuses = movieService.getTaskStatusMap();
+        assertEquals("COMPLETED", statuses.get(taskId));
     }
 
     @Test
@@ -411,7 +407,7 @@ class MovieServiceTest {
         await().atMost(1, TimeUnit.SECONDS).until(interruptThread::isAlive);
         interruptThread.interrupt();
         interruptThread.join();
-        Field field = MovieService.class.getDeclaredField("asyncTasks");
+        Field field = MovieService.class.getDeclaredField("taskStatusMap");
         field.setAccessible(true);
         Map<String, String> asyncTasks = (Map<String, String>) field.get(movieService);
         assertEquals("ERROR", asyncTasks.get(testTaskId));

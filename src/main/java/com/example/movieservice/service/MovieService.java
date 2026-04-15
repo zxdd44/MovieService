@@ -43,9 +43,7 @@ public class MovieService {
     private final GenreRepository genreRepository;
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
     private final Map<String, String> taskStatusMap = new ConcurrentHashMap<>();
-    private final Map<String, String> asyncTasks = new ConcurrentHashMap<>();
     private final AtomicInteger safeCounter = new AtomicInteger(0);
-    private final ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
 
     public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
                         MovieMapper movieMapper, GenreRepository genreRepository) {
@@ -58,19 +56,7 @@ public class MovieService {
     public String startAsyncTask() {
         String taskId = UUID.randomUUID().toString();
         taskStatusMap.put(taskId, "IN_PROGRESS");
-        backgroundExecutor.submit(() -> {
-            try {
-                LOGGER.info("Начало выполнения задачи: {}", taskId);
-                Thread.sleep(15000);
-                taskStatusMap.put(taskId, "COMPLETED");
-                LOGGER.info("Задача {} успешно завершена", taskId);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                taskStatusMap.put(taskId, "ERROR");
-                LOGGER.error("Задача {} прервана", taskId);
-            }
-        });
-
+        processComplexBusinessLogic(taskId);
         return taskId;
     }
 
@@ -86,12 +72,12 @@ public class MovieService {
     public CompletableFuture<Void> processComplexBusinessLogic(String taskId) {
         try {
             LOGGER.info("Задача {} началась в потоке {}", taskId, Thread.currentThread().getName());
-            Thread.sleep(10000);
-            asyncTasks.put(taskId, "COMPLETED");
+            Thread.sleep(15000);
+            taskStatusMap.put(taskId, "COMPLETED");
             LOGGER.info("Задача {} завершена", taskId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            asyncTasks.put(taskId, "ERROR");
+            taskStatusMap.put(taskId, "ERROR");
         }
         return CompletableFuture.completedFuture(null);
     }

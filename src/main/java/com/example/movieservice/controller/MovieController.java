@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -93,7 +94,9 @@ public class MovieController {
     @PostMapping("/async/start")
     @Operation(summary = "Запуск долгой фоновой задачи")
     public ResponseEntity<Map<String, String>> startAsyncTask() {
-        String taskId = movieService.startAsyncTask();
+        String taskId = UUID.randomUUID().toString();
+        movieService.getTaskStatusMap().put(taskId, "IN_PROGRESS");
+        movieService.processComplexBusinessLogic(taskId);
         Map<String, String> response = new HashMap<>();
         response.put("taskId", taskId);
         response.put("status", "IN_PROGRESS");
