@@ -45,6 +45,7 @@ public class MovieService {
     private final GenreRepository genreRepository;
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
     private final Map<String, TaskStatus> taskStatusMap = new ConcurrentHashMap<>();
+    @Lazy private MovieService self;
     private final AtomicInteger safeCounter = new AtomicInteger(0);
 
     public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
@@ -56,8 +57,9 @@ public class MovieService {
     }
 
     @Autowired
-    @Lazy
-    private MovieService self;
+    public void setSelf(MovieService self) {
+        this.self = self;
+    }
 
     public String startAsyncTask() {
         String taskId = UUID.randomUUID().toString();

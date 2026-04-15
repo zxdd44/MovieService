@@ -333,10 +333,8 @@ class MovieServiceTest {
     }
 
     @BeforeEach
-    void setUp() throws Exception {
-        Field selfField = MovieService.class.getDeclaredField("self");
-        selfField.setAccessible(true);
-        selfField.set(movieService, movieService);
+    void setUp() {
+        movieService.setSelf(movieService);
     }
 
     @Test
