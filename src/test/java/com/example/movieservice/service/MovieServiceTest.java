@@ -381,11 +381,6 @@ class MovieServiceTest {
     }
 
     @Test
-    void testGetTaskStatusMap() {
-        assertNotNull(movieService.getTaskStatusMap());
-    }
-
-    @Test
     void testStartAsyncTask_Success() {
         String taskId = movieService.startAsyncTask();
         when(asyncTaskService.getTaskStatus(taskId)).thenReturn(TaskStatus.COMPLETED);

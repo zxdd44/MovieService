@@ -1,7 +1,5 @@
-package com.example.movieservice.service;
+package com.example.movieservice.async;
 
-import com.example.movieservice.async.MovieAsyncTaskService;
-import com.example.movieservice.async.TaskStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

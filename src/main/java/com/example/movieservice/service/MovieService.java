@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +39,7 @@ public class MovieService {
     private final MovieMapper movieMapper;
     private final GenreRepository genreRepository;
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
-    private final Map<String, TaskStatus> taskStatusMap = new ConcurrentHashMap<>();
+    private int syncCounter = 0;
     private final AtomicInteger safeCounter = new AtomicInteger(0);
     private final MovieAsyncTaskService asyncTaskService;
 
@@ -56,22 +55,21 @@ public class MovieService {
 
     public String startAsyncTask() {
         String taskId = UUID.randomUUID().toString();
-        taskStatusMap.put(taskId, TaskStatus.IN_PROGRESS);
         asyncTaskService.processComplexBusinessLogic(taskId);
         return taskId;
-    }
-
-    public Map<String, TaskStatus> getTaskStatusMap() {
-        return this.taskStatusMap;
     }
 
     public TaskStatus getTaskStatus(String taskId) {
         return asyncTaskService.getTaskStatus(taskId);
     }
 
+    private synchronized void incrementSync() {
+        syncCounter++;
+    }
+
     public Map<String, Integer> runSafeCounterDemo() {
         safeCounter.set(0);
-
+        syncCounter = 0;
         int threadsCount = 100;
         int iterationsPerThread = 10000;
 
@@ -80,6 +78,7 @@ public class MovieService {
                 executor.submit(() -> {
                     for (int j = 0; j < iterationsPerThread; j++) {
                         safeCounter.incrementAndGet();
+                        incrementSync();
                     }
                 });
             }
@@ -92,6 +91,7 @@ public class MovieService {
         Map<String, Integer> results = new HashMap<>();
         results.put("1_Expected", threadsCount * iterationsPerThread);
         results.put("2_SafeCounter_Atomic", safeCounter.get());
+        results.put("3_Safe_Synchronized", syncCounter);
 
         return results;
     }
