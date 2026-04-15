@@ -3,6 +3,7 @@ package com.example.movieservice.service;
 import com.example.movieservice.dto.MovieDto;
 import com.example.movieservice.exception.AlreadyExistsException;
 import com.example.movieservice.mapper.MovieMapper;
+import com.example.movieservice.model.TaskStatus;
 import com.example.movieservice.model.Director;
 import com.example.movieservice.model.Genre;
 import com.example.movieservice.model.Movie;
@@ -10,6 +11,7 @@ import com.example.movieservice.model.MovieStatus;
 import com.example.movieservice.repository.DirectorRepository;
 import com.example.movieservice.repository.GenreRepository;
 import com.example.movieservice.repository.MovieRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -330,17 +332,24 @@ class MovieServiceTest {
         verify(genreRepository, never()).save(any(Genre.class));
     }
 
+    @BeforeEach
+    void setUp() throws Exception {
+        Field selfField = MovieService.class.getDeclaredField("self");
+        selfField.setAccessible(true);
+        selfField.set(movieService, movieService);
+    }
+
     @Test
     void testStartAsyncTask_CreatesTaskAndReturnsId() {
         String taskId = movieService.startAsyncTask();
         assertNotNull(taskId);
-        assertEquals("COMPLETED", movieService.getTaskStatus(taskId));
+        assertEquals(TaskStatus.COMPLETED, movieService.getTaskStatus(taskId));
     }
 
     @Test
     void testGetTaskStatus_NotFound() {
-        String status = movieService.getTaskStatus("non-existent-id");
-        assertEquals("NOT_FOUND", status);
+        TaskStatus status = movieService.getTaskStatus("non-existent-id");
+        assertEquals(TaskStatus.NOT_FOUND, status);
     }
 
     @Test
@@ -372,30 +381,30 @@ class MovieServiceTest {
         assertNotNull(taskId);
         await()
             .atMost(16, TimeUnit.SECONDS)
-            .until(() -> "COMPLETED".equals(movieService.getTaskStatus(taskId)));
-        assertEquals("COMPLETED", movieService.getTaskStatus(taskId));
+            .until(() -> TaskStatus.COMPLETED.equals(movieService.getTaskStatus(taskId)));
+        assertEquals(TaskStatus.COMPLETED, movieService.getTaskStatus(taskId));
     }
 
     @Test
     void testStartAsyncTask_Interruption() {
         String taskId = "interrupt-id";
-        movieService.getTaskStatusMap().put(taskId, "IN_PROGRESS");
+        movieService.getTaskStatusMap().put(taskId, TaskStatus.IN_PROGRESS);
         Thread testThread = new Thread(() -> movieService.processComplexBusinessLogic(taskId));
         testThread.start();
         await().atMost(1, TimeUnit.SECONDS).until(testThread::isAlive);
         testThread.interrupt();
         await()
             .atMost(2, TimeUnit.SECONDS)
-            .until(() -> "ERROR".equals(movieService.getTaskStatus(taskId)));
-        assertEquals("ERROR", movieService.getTaskStatus(taskId));
+            .until(() -> TaskStatus.ERROR.equals(movieService.getTaskStatus(taskId)));
+        assertEquals(TaskStatus.ERROR, movieService.getTaskStatus(taskId));
     }
 
     @Test
     void testProcessComplexBusinessLogic_Success() {
         String taskId = "success-logic";
         movieService.processComplexBusinessLogic(taskId);
-        Map<String, String> statuses = movieService.getTaskStatusMap();
-        assertEquals("COMPLETED", statuses.get(taskId));
+        Map<String, TaskStatus> statuses = movieService.getTaskStatusMap();
+        assertEquals(TaskStatus.COMPLETED, statuses.get(taskId));
     }
 
     @Test
@@ -409,8 +418,8 @@ class MovieServiceTest {
         interruptThread.join();
         Field field = MovieService.class.getDeclaredField("taskStatusMap");
         field.setAccessible(true);
-        Map<String, String> asyncTasks = (Map<String, String>) field.get(movieService);
-        assertEquals("ERROR", asyncTasks.get(testTaskId));
+        Map<String, TaskStatus> asyncTasks = (Map<String, TaskStatus>) field.get(movieService);
+        assertEquals(TaskStatus.ERROR, asyncTasks.get(testTaskId));
     }
 
     @Test

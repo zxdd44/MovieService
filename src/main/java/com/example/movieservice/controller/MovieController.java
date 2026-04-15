@@ -2,6 +2,7 @@ package com.example.movieservice.controller;
 
 import com.example.movieservice.dto.MovieDto;
 import com.example.movieservice.mapper.MovieMapper;
+import com.example.movieservice.model.TaskStatus;
 import com.example.movieservice.service.MovieService;
 import com.example.movieservice.model.Movie;
 
@@ -26,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -94,12 +94,10 @@ public class MovieController {
     @PostMapping("/async/start")
     @Operation(summary = "Запуск долгой фоновой задачи")
     public ResponseEntity<Map<String, String>> startAsyncTask() {
-        String taskId = UUID.randomUUID().toString();
-        movieService.getTaskStatusMap().put(taskId, "IN_PROGRESS");
-        movieService.processComplexBusinessLogic(taskId);
+        String taskId = movieService.startAsyncTask();
         Map<String, String> response = new HashMap<>();
         response.put("taskId", taskId);
-        response.put("status", "IN_PROGRESS");
+        response.put("status", TaskStatus.IN_PROGRESS.name());
         response.put("message", "Задача успешно запущена и выполняется в фоновом режиме");
         return ResponseEntity.ok(response);
     }
@@ -107,18 +105,17 @@ public class MovieController {
     @GetMapping("/async/status/{taskId}")
     @Operation(summary = "Проверить статус задачи")
     public ResponseEntity<Map<String, String>> checkTaskStatus(@PathVariable String taskId) {
-        String status = movieService.getTaskStatus(taskId);
+        TaskStatus status = movieService.getTaskStatus(taskId);
         Map<String, String> response = new HashMap<>();
         response.put("taskId", taskId);
-        response.put("status", status);
+        response.put("status", status.name());
         String message = switch (status) {
-            case "IN_PROGRESS" -> "Задача всё еще выполняется. Подождите немного.";
-            case "COMPLETED" -> "Задача успешно завершена.";
-            case "ERROR" -> "Произошла ошибка при выполнении задачи.";
+            case IN_PROGRESS -> "Задача всё еще выполняется. Подождите немного.";
+            case COMPLETED -> "Задача успешно завершена.";
+            case ERROR -> "Произошла ошибка при выполнении задачи.";
             default -> "Задача с таким ID не найдена.";
         };
         response.put("message", message);
-
         return ResponseEntity.ok(response);
     }
 

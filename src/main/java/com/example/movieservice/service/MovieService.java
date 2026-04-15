@@ -1,5 +1,6 @@
 package com.example.movieservice.service;
 
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.movieservice.dto.MovieDto;
@@ -13,7 +14,8 @@ import com.example.movieservice.repository.MovieRepository;
 import com.example.movieservice.model.Genre;
 import com.example.movieservice.repository.GenreRepository;
 import com.example.movieservice.exception.AlreadyExistsException;
-
+import com.example.movieservice.model.TaskStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -42,7 +44,7 @@ public class MovieService {
     private final MovieMapper movieMapper;
     private final GenreRepository genreRepository;
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
-    private final Map<String, String> taskStatusMap = new ConcurrentHashMap<>();
+    private final Map<String, TaskStatus> taskStatusMap = new ConcurrentHashMap<>();
     private final AtomicInteger safeCounter = new AtomicInteger(0);
 
     public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
@@ -53,18 +55,22 @@ public class MovieService {
         this.genreRepository = genreRepository;
     }
 
+    @Autowired
+    @Lazy
+    private MovieService self;
+
     public String startAsyncTask() {
         String taskId = UUID.randomUUID().toString();
-        taskStatusMap.put(taskId, "IN_PROGRESS");
-        processComplexBusinessLogic(taskId);
+        taskStatusMap.put(taskId, TaskStatus.IN_PROGRESS);
+        self.processComplexBusinessLogic(taskId);
         return taskId;
     }
 
-    public String getTaskStatus(String taskId) {
-        return taskStatusMap.getOrDefault(taskId, "NOT_FOUND");
+    public TaskStatus getTaskStatus(String taskId) {
+        return taskStatusMap.getOrDefault(taskId, TaskStatus.NOT_FOUND);
     }
 
-    public Map<String, String> getTaskStatusMap() {
+    public Map<String, TaskStatus> getTaskStatusMap() {
         return this.taskStatusMap;
     }
 
@@ -73,11 +79,11 @@ public class MovieService {
         try {
             LOGGER.info("Задача {} началась в потоке {}", taskId, Thread.currentThread().getName());
             Thread.sleep(15000);
-            taskStatusMap.put(taskId, "COMPLETED");
+            taskStatusMap.put(taskId, TaskStatus.COMPLETED);
             LOGGER.info("Задача {} завершена", taskId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            taskStatusMap.put(taskId, "ERROR");
+            taskStatusMap.put(taskId, TaskStatus.ERROR);
         }
         return CompletableFuture.completedFuture(null);
     }
