@@ -84,14 +84,16 @@ public class DemoService {
 
     public Map<String, Integer> runUnsafeRaceConditionDemo() {
         final int[] unsafeCounter = {0};
-        int threadsCount = 50;
-        int iterationsPerThread = 2000;
+        int threadsCount = 100;
+        int iterationsPerThread = 10000;
 
         try (ExecutorService executor = Executors.newFixedThreadPool(threadsCount)) {
             for (int i = 0; i < threadsCount; i++) {
                 executor.submit(() -> {
                     for (int j = 0; j < iterationsPerThread; j++) {
-                        unsafeCounter[0]++;
+                        int currentValue = unsafeCounter[0];
+                        Thread.yield();
+                        unsafeCounter[0] = currentValue + 1;
                     }
                 });
             }
@@ -99,7 +101,6 @@ public class DemoService {
             executor.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            LOGGER.error("Поток был прерван во время демонстрации race condition", e);
         }
 
         Map<String, Integer> results = new HashMap<>();

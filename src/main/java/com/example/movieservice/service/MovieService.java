@@ -72,8 +72,8 @@ public class MovieService {
     public Map<String, Integer> runSafeCounterDemo() {
         safeCounter.set(0);
 
-        int threadsCount = 50;
-        int iterationsPerThread = 2000;
+        int threadsCount = 100;
+        int iterationsPerThread = 10000;
 
         try (ExecutorService executor = Executors.newFixedThreadPool(threadsCount)) {
             for (int i = 0; i < threadsCount; i++) {

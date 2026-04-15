@@ -46,7 +46,7 @@ public class DemoController {
 
     // URL: GET http://localhost:8080/demo/race-condition-unsafe
     @GetMapping("/race-condition-unsafe")
-    public Map<String, Integer> demoRaceConditionUnsafe() {
+    public Map<String, Integer> getUnsafeRace() {
         return demoService.runUnsafeRaceConditionDemo();
     }
 }
