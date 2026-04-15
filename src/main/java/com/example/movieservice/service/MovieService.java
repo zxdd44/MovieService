@@ -1,6 +1,6 @@
 package com.example.movieservice.service;
 
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
+import com.example.movieservice.async.MovieAsyncTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.movieservice.dto.MovieDto;
@@ -14,21 +14,17 @@ import com.example.movieservice.repository.MovieRepository;
 import com.example.movieservice.model.Genre;
 import com.example.movieservice.repository.GenreRepository;
 import com.example.movieservice.exception.AlreadyExistsException;
-import com.example.movieservice.model.TaskStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.movieservice.async.TaskStatus;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,49 +41,32 @@ public class MovieService {
     private final GenreRepository genreRepository;
     private final Map<MovieFilterKey, Page<MovieDto>> cache = new HashMap<>();
     private final Map<String, TaskStatus> taskStatusMap = new ConcurrentHashMap<>();
-    @Lazy private MovieService self;
     private final AtomicInteger safeCounter = new AtomicInteger(0);
+    private final MovieAsyncTaskService asyncTaskService;
 
     public MovieService(MovieRepository movieRepository, DirectorRepository directorRepository,
-                        MovieMapper movieMapper, GenreRepository genreRepository) {
+                        MovieMapper movieMapper, GenreRepository genreRepository,
+                        MovieAsyncTaskService asyncTaskService) {
         this.movieRepository = movieRepository;
         this.directorRepository = directorRepository;
         this.movieMapper = movieMapper;
         this.genreRepository = genreRepository;
-    }
-
-    @Autowired
-    public void setSelf(MovieService self) {
-        this.self = self;
+        this.asyncTaskService = asyncTaskService;
     }
 
     public String startAsyncTask() {
         String taskId = UUID.randomUUID().toString();
         taskStatusMap.put(taskId, TaskStatus.IN_PROGRESS);
-        self.processComplexBusinessLogic(taskId);
+        asyncTaskService.processComplexBusinessLogic(taskId);
         return taskId;
-    }
-
-    public TaskStatus getTaskStatus(String taskId) {
-        return taskStatusMap.getOrDefault(taskId, TaskStatus.NOT_FOUND);
     }
 
     public Map<String, TaskStatus> getTaskStatusMap() {
         return this.taskStatusMap;
     }
 
-    @Async
-    public CompletableFuture<Void> processComplexBusinessLogic(String taskId) {
-        try {
-            LOGGER.info("Задача {} началась в потоке {}", taskId, Thread.currentThread().getName());
-            Thread.sleep(15000);
-            taskStatusMap.put(taskId, TaskStatus.COMPLETED);
-            LOGGER.info("Задача {} завершена", taskId);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            taskStatusMap.put(taskId, TaskStatus.ERROR);
-        }
-        return CompletableFuture.completedFuture(null);
+    public TaskStatus getTaskStatus(String taskId) {
+        return asyncTaskService.getTaskStatus(taskId);
     }
 
     public Map<String, Integer> runSafeCounterDemo() {

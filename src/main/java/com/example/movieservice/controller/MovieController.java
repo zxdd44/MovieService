@@ -1,8 +1,8 @@
 package com.example.movieservice.controller;
 
+import com.example.movieservice.async.TaskStatus;
 import com.example.movieservice.dto.MovieDto;
 import com.example.movieservice.mapper.MovieMapper;
-import com.example.movieservice.model.TaskStatus;
 import com.example.movieservice.service.MovieService;
 import com.example.movieservice.model.Movie;
 

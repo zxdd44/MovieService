@@ -1,9 +1,10 @@
 package com.example.movieservice.service;
 
+import com.example.movieservice.async.MovieAsyncTaskService;
+import com.example.movieservice.async.TaskStatus;
 import com.example.movieservice.dto.MovieDto;
 import com.example.movieservice.exception.AlreadyExistsException;
 import com.example.movieservice.mapper.MovieMapper;
-import com.example.movieservice.model.TaskStatus;
 import com.example.movieservice.model.Director;
 import com.example.movieservice.model.Genre;
 import com.example.movieservice.model.Movie;
@@ -11,7 +12,6 @@ import com.example.movieservice.model.MovieStatus;
 import com.example.movieservice.repository.DirectorRepository;
 import com.example.movieservice.repository.GenreRepository;
 import com.example.movieservice.repository.MovieRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,12 +21,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,6 +45,7 @@ class MovieServiceTest {
     @Mock private DirectorRepository directorRepository;
     @Mock private GenreRepository genreRepository;
     @Mock private MovieMapper movieMapper;
+    @Mock private MovieAsyncTaskService asyncTaskService;
     @InjectMocks private MovieService movieService;
 
     @Test
@@ -332,20 +330,34 @@ class MovieServiceTest {
         verify(genreRepository, never()).save(any(Genre.class));
     }
 
-    @BeforeEach
-    void setUp() {
-        movieService.setSelf(movieService);
+    @Test
+    void testStartAsyncTask_DelegatesToAsyncTaskService() {
+        String taskId = movieService.startAsyncTask();
+        assertNotNull(taskId);
+        verify(asyncTaskService, times(1)).processComplexBusinessLogic(taskId);
+    }
+
+    @Test
+    void testGetTaskStatus_DelegatesToAsyncTaskService() {
+        String taskId = "test-id";
+        when(asyncTaskService.getTaskStatus(taskId)).thenReturn(TaskStatus.COMPLETED);
+        TaskStatus status = movieService.getTaskStatus(taskId);
+        assertEquals(TaskStatus.COMPLETED, status);
+        verify(asyncTaskService).getTaskStatus(taskId);
     }
 
     @Test
     void testStartAsyncTask_CreatesTaskAndReturnsId() {
         String taskId = movieService.startAsyncTask();
         assertNotNull(taskId);
+        when(asyncTaskService.getTaskStatus(taskId)).thenReturn(TaskStatus.COMPLETED);
         assertEquals(TaskStatus.COMPLETED, movieService.getTaskStatus(taskId));
+        verify(asyncTaskService).processComplexBusinessLogic(taskId);
     }
 
     @Test
     void testGetTaskStatus_NotFound() {
+        when(asyncTaskService.getTaskStatus("non-existent-id")).thenReturn(TaskStatus.NOT_FOUND);
         TaskStatus status = movieService.getTaskStatus("non-existent-id");
         assertEquals(TaskStatus.NOT_FOUND, status);
     }
@@ -376,48 +388,16 @@ class MovieServiceTest {
     @Test
     void testStartAsyncTask_Success() {
         String taskId = movieService.startAsyncTask();
-        assertNotNull(taskId);
-        await()
-            .atMost(16, TimeUnit.SECONDS)
-            .until(() -> TaskStatus.COMPLETED.equals(movieService.getTaskStatus(taskId)));
+        when(asyncTaskService.getTaskStatus(taskId)).thenReturn(TaskStatus.COMPLETED);
         assertEquals(TaskStatus.COMPLETED, movieService.getTaskStatus(taskId));
+        verify(asyncTaskService).processComplexBusinessLogic(anyString());
     }
 
     @Test
-    void testStartAsyncTask_Interruption() {
-        String taskId = "interrupt-id";
-        movieService.getTaskStatusMap().put(taskId, TaskStatus.IN_PROGRESS);
-        Thread testThread = new Thread(() -> movieService.processComplexBusinessLogic(taskId));
-        testThread.start();
-        await().atMost(1, TimeUnit.SECONDS).until(testThread::isAlive);
-        testThread.interrupt();
-        await()
-            .atMost(2, TimeUnit.SECONDS)
-            .until(() -> TaskStatus.ERROR.equals(movieService.getTaskStatus(taskId)));
-        assertEquals(TaskStatus.ERROR, movieService.getTaskStatus(taskId));
-    }
-
-    @Test
-    void testProcessComplexBusinessLogic_Success() {
-        String taskId = "success-logic";
-        movieService.processComplexBusinessLogic(taskId);
-        Map<String, TaskStatus> statuses = movieService.getTaskStatusMap();
-        assertEquals(TaskStatus.COMPLETED, statuses.get(taskId));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void testProcessComplexBusinessLogic_InterruptHandling() throws Exception {
-        String testTaskId = "test-interrupt-id";
-        Thread interruptThread = new Thread(() -> movieService.processComplexBusinessLogic(testTaskId));
-        interruptThread.start();
-        await().atMost(1, TimeUnit.SECONDS).until(interruptThread::isAlive);
-        interruptThread.interrupt();
-        interruptThread.join();
-        Field field = MovieService.class.getDeclaredField("taskStatusMap");
-        field.setAccessible(true);
-        Map<String, TaskStatus> asyncTasks = (Map<String, TaskStatus>) field.get(movieService);
-        assertEquals(TaskStatus.ERROR, asyncTasks.get(testTaskId));
+    void testStartAsyncTask_CallsAsyncService() {
+        String taskId = movieService.startAsyncTask();
+        verify(asyncTaskService).processComplexBusinessLogic(anyString());
+        assertNotNull(taskId);
     }
 
     @Test

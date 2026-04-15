@@ -1,4 +1,4 @@
-package com.example.movieservice.model;
+package com.example.movieservice.async;
 
 public enum TaskStatus {
     IN_PROGRESS,
