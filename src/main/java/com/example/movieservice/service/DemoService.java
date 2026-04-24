@@ -85,15 +85,13 @@ public class DemoService {
     public Map<String, Integer> runUnsafeRaceConditionDemo() {
         final int[] unsafeCounter = {0};
         int threadsCount = 100;
-        int iterationsPerThread = 10000;
+        int iterationsPerThread = 1000;
 
         try (ExecutorService executor = Executors.newFixedThreadPool(threadsCount)) {
             for (int i = 0; i < threadsCount; i++) {
                 executor.submit(() -> {
                     for (int j = 0; j < iterationsPerThread; j++) {
-                        int currentValue = unsafeCounter[0];
-                        Thread.yield();
-                        unsafeCounter[0] = currentValue + 1;
+                        unsafeCounter[0]++;
                     }
                 });
             }
