@@ -59,14 +59,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiError> handleRuntimeException(RuntimeException ex) {
-        LOG.error("Ресурс не найден (404 Not Found): {}", ex.getMessage());
+        LOG.error("Внутренняя ошибка сервера (500): {}", ex.getMessage());
         ApiError apiError = new ApiError(
-            HttpStatus.NOT_FOUND.value(),
-            "Resource Not Found",
-            ex.getMessage(),
-            List.of()
+            HttpStatus.INTERNAL_SERVER_ERROR.value(), // МЕНЯЕМ НА 500
+            "Internal Server Error",
+            ex.getMessage()
         );
-        return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)

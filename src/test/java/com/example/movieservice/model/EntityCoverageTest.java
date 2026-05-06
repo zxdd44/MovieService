@@ -14,20 +14,18 @@ class EntityCoverageTest {
         Movie movie = new Movie("Test", 2000, MovieStatus.NOT_WATCHED, new Director());
         movie.setTitle("New Title");
         movie.setYear(2026);
-        movie.setStatus(MovieStatus.ABANDONED); // Твой статус
+        movie.setStatus(MovieStatus.ABANDONED);
         movie.setDirector(new Director());
         movie.setGenres(Set.of(new Genre()));
         movie.setReviews(List.of(new Review()));
-        movie.setStudio(new Studio());
 
-        assertNull(movie.getId()); // ID обычно null до сохранения в БД
+        assertNull(movie.getId());
         assertEquals("New Title", movie.getTitle());
         assertEquals(2026, movie.getYear());
         assertEquals(MovieStatus.ABANDONED, movie.getStatus());
         assertNotNull(movie.getDirector());
         assertNotNull(movie.getGenres());
         assertNotNull(movie.getReviews());
-        assertNotNull(movie.getStudio());
     }
 
     @Test
@@ -54,13 +52,6 @@ class EntityCoverageTest {
         review.setMovie(new Movie());
 
         assertEquals("Awesome!", review.getContent());
-    }
-
-    @Test
-    void testStudioEntity() {
-        Studio studio = new Studio();
-        studio.setName("Universal");
-        assertEquals("Universal", studio.getName());
     }
 
     @Test

@@ -15,6 +15,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.CascadeType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -26,8 +27,9 @@ public class Movie {
     private Long id;
 
     private String title;
-
+    private String imageUrl;
     private int year;
+    private Double averageRating = 0.0;
 
     @Enumerated(EnumType.ORDINAL)
     private MovieStatus status;
@@ -44,12 +46,8 @@ public class Movie {
     )
     private Set<Genre> genres;
 
-    //При удалении фильма должны удаляться и его отзывы (CascadeType.ALL)
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
-    private List<Review> reviews;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Studio studio;
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
 
     public Movie() {
         // Default constructor for JPA
@@ -114,11 +112,15 @@ public class Movie {
         this.reviews = reviews;
     }
 
-    public Studio getStudio() {
-        return studio;
-    }
+    public String getImageUrl() {
+        return imageUrl; }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl; }
 
-    public void setStudio(Studio studio) {
-        this.studio = studio;
+    public Double getAverageRating() {
+        return averageRating;
+    }
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 }

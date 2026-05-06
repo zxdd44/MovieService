@@ -9,6 +9,7 @@ import java.util.List;
 
 @Schema(description = "DTO для передачи данных о фильме")
 public class MovieDto {
+    private Long id;
     @Schema(description = "Название фильма", example = "Интерстеллар")
     @NotBlank(message = "Название фильма не может быть пустым")
     @Size(max = 255, message = "Название не должно превышать 255 символов")
@@ -28,7 +29,14 @@ public class MovieDto {
 
     @Schema(description = "Список жанров", example = "[\"Sci-Fi\", \"Drama\"]")
     private List<String> genres;
+    private String imageUrl;
+    private Double averageRating;
+    private List<ReviewDTO> reviews;
 
+    public Long getId() {
+        return id; }
+    public void setId(Long id) {
+        this.id = id; }
     public String getTitle() {
         return title;
     }
@@ -57,4 +65,20 @@ public class MovieDto {
         return genres; }
     public void setGenres(List<String> genres) {
         this.genres = genres; }
+    public String getImageUrl() {
+        return imageUrl; }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl; }
+    public  Double getAverageRating() {
+        return averageRating;
+    }
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+    public List<ReviewDTO> getReviews() {
+        return reviews;
+    }
+    public void setReviews(List<ReviewDTO> reviews) {
+        this.reviews = reviews;
+    }
 }

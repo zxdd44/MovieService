@@ -20,15 +20,15 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     List<Movie> findAll();
 
     @Override
-    @EntityGraph(attributePaths = {"director", "genres"})
+    @EntityGraph(attributePaths = {"director", "genres", "reviews"})
     Optional<Movie> findById(Long id);
 
     @EntityGraph(attributePaths = {"director", "genres"})
-    @Query("SELECT m FROM Movie m JOIN m.genres g WHERE g.name = :genre")
+    @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.name = :genre")
     Page<Movie> findByGenreJPQL(@Param("genre") String genre, Pageable pageable);
 
     @EntityGraph(attributePaths = {"director", "genres"})
-    @Query("SELECT m FROM Movie m JOIN m.director d WHERE d.name = :director")
+    @Query("SELECT DISTINCT m FROM Movie m JOIN m.director d WHERE d.name = :director")
     Page<Movie> findByDirectorJPQL(@Param("director") String director, Pageable pageable);
 
     @EntityGraph(attributePaths = {"director", "genres"})
@@ -36,4 +36,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
         "JOIN genres g ON mg.genre_id = g.id WHERE g.name = :genre",
         nativeQuery = true)
     Page<Movie> findByGenreNative(@Param("genre") String genre, Pageable pageable);
+    Page<Movie> findAllByOrderByAverageRatingDesc(Pageable pageable);
+    Page<Movie> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }
