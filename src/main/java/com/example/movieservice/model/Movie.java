@@ -116,7 +116,6 @@ public class Movie {
         return imageUrl; }
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl; }
-
     public Double getAverageRating() {
         return averageRating;
     }

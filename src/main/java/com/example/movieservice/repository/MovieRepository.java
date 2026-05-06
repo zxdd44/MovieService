@@ -36,6 +36,5 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
         "JOIN genres g ON mg.genre_id = g.id WHERE g.name = :genre",
         nativeQuery = true)
     Page<Movie> findByGenreNative(@Param("genre") String genre, Pageable pageable);
-    Page<Movie> findAllByOrderByAverageRatingDesc(Pageable pageable);
     Page<Movie> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }

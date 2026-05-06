@@ -139,26 +139,21 @@ public class MovieController {
             long dropped = progressList.stream().filter(p -> p.getStatus() == MovieStatus.ABANDONED).count();
             long planned = progressList.stream().filter(p -> p.getStatus() == MovieStatus.DEFERRED).count();
             long total = watched + dropped + planned;
-
             Map<String, UserProfileDto.ChartData> chart = new HashMap<>();
             chart.put("WATCHED", new UserProfileDto.ChartData(watched, total == 0 ? 0 : (watched * 100.0) / total));
             chart.put("ABANDONED", new UserProfileDto.ChartData(dropped, total == 0 ? 0 : (dropped * 100.0) / total));
             chart.put("DEFERRED", new UserProfileDto.ChartData(planned, total == 0 ? 0 : (planned * 100.0) / total));
-
             UserProfileDto profile = new UserProfileDto();
             profile.setUsername(user.getUsername());
             profile.setStatus(user.getStatus());
             profile.setAvatarUrl(user.getAvatarUrl());
             profile.setStatusChart(chart);
-
             List<MovieDto> watchedMovies = progressList.stream()
                 .filter(p -> p.getStatus() == MovieStatus.WATCHED)
                 .map(p -> movieMapper.toDto(p.getMovie()))
                 .limit(10)
                 .toList();
-
             profile.setWatchedMovies(watchedMovies);
-
             return ResponseEntity.ok(profile);
         }).orElse(ResponseEntity.status(404).body(null));
     }

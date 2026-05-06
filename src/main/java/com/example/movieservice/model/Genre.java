@@ -18,7 +18,6 @@ public class Genre {
 
     private String name;
 
-    // Жанр связан со многими фильмами (ManyToMany)
     @ManyToMany(mappedBy = "genres")
     private Set<Movie> movies;
 

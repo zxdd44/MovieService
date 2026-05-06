@@ -20,7 +20,6 @@ public class Director {
     @Column(unique = true, nullable = false)
     private String name;
 
-    // Один режиссер может снять много фильмов (OneToMany)
     @OneToMany(mappedBy = "director")
     private List<Movie> movies;
 
