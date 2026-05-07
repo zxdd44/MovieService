@@ -1,13 +1,12 @@
 /* --- Layout --- */
 
 .app-layout {
-    width: 1300px;
-    min-height: 98vh;
-    margin: 20px 0;
+    max-width: 1300px;
+    min-height: 95vh;
+    margin: 20px auto;
     background-color: #fff;
     display: flex;
     border-radius: 30px;
-    overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
 
@@ -18,16 +17,6 @@
     background-color: #fff;
     overflow-y: auto;
     max-height: 98vh;
-}
-
-.home-container,
-.genres-page,
-.profile-main,
-.movie-detail-container,
-.admin-container {
-    padding: 30px 20px;
-    width: 1250px;
-    margin: 0;
 }
 
 /* --- sidebar --- */
@@ -49,7 +38,7 @@
 
 .nav-button {
     transition: all 0.3s ease;
-    border: 2px solid #333;
+    border: 1px solid #333;
     border-radius: 12px;
     padding: 12px;
     text-align: center;
@@ -81,18 +70,18 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
-    top: 0;
-    z-index: 10;
+    width: 100%;
 }
 
 .search-bar {
     width: 100%;
     max-width: 600px;
     padding: 12px 25px;
-    border: 2px solid #333;
+    border: 1px solid #e0e0e0;
     border-radius: 25px;
     font-size: 16px;
     outline: none;
+    margin-right: 40px;
     transition: border-color 0.2s;
 }
 
@@ -103,6 +92,9 @@
 
 .logout-btn {
     color: #000 !important;
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
     cursor: pointer;
     font-weight: bold;
     text-decoration: underline;
@@ -126,13 +118,14 @@
     flex-direction: row;
     gap: 20px;
     background: white;
-    border: 2px solid #333;
+    border: 1px solid #e0e0e0;
     border-radius: 15px;
     padding: 20px;
     position: relative;
     height: 280px;
     transition: all 0.3s ease;
     cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .movie-card:hover {
@@ -146,8 +139,8 @@
     height: 240px;
     flex-shrink: 0;
     border-radius: 10px;
-    border: 2px solid #333;
     overflow: hidden;
+    border: 1px solid #e0e0e0;
 }
 
 .movie-poster-img {
@@ -243,7 +236,7 @@
 
 .modal-content .search-bar {
     width: 100%;
-    border: 3px solid #000;
+    border: 2px solid #e0e0e0;
     border-radius: 25px;
     padding: 12px 20px;
     font-size: 16px;
@@ -258,7 +251,7 @@
 }
 
 .modal-content .nav-button {
-    border: 3px solid #000;
+    border: 2px solid #e0e0e0;
     border-radius: 20px;
     padding: 12px;
     font-weight: bold;
@@ -270,6 +263,11 @@
 .modal-content .nav-button:hover {
     transform: scale(1.06);
     filter: brightness(0.9);
+}
+
+.home-header .nav-button {
+    margin-right: 20px;
+    white-space: nowrap;
 }
 
 /* --- AdminPage --- */
@@ -297,15 +295,21 @@
 }
 
 .admin-container {
-    max-width: 900px;
+    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 30px;
+    box-sizing: border-box;
 }
 
 .admin-table {
     width: 100%;
+    max-width: 1000px;
+    table-layout: fixed;
+    word-wrap: break-word;
     border-collapse: separate;
     border-spacing: 0;
-    border: 2px solid #000;
+    border: 1px solid #e0e0e0;
     border-radius: 15px;
     overflow: hidden;
     margin-top: 20px;
@@ -313,7 +317,7 @@
 
 .admin-table th {
     background-color: #f5f5f5;
-    border-bottom: 2px solid #000;
+    border-bottom: 2px solid #e0e0e0;
     padding: 12px;
     font-size: 14px;
 }
@@ -345,7 +349,7 @@
 .schema-section {
     flex: 1;
     background: #fff;
-    border: 3px solid #000;
+    border: 1px solid #e0e0e0;
     border-radius: 20px;
     padding: 25px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
@@ -432,7 +436,7 @@
 
 .auth-form .search-bar {
     transition: all 0.2s ease;
-    border: 2px solid #333;
+    border: 2px solid #e0e0e0;
 }
 
 .auth-form .search-bar:focus {
@@ -443,7 +447,7 @@
 .auth-form .nav-button.active {
     background-color: #6366f1;
     color: white;
-    border: 2px solid #000;
+    border: 2px solid #e0e0e0;
     width: 100%;
     padding: 14px;
     border-radius: 12px;
@@ -465,12 +469,9 @@
 
 /* --- PROFILE --- */
 .profile-main {
-    border: 3px solid #000;
+    border: 1px solid #000;
     border-radius: 20px;
-    padding: 40px;
     background-color: #fff;
-    max-width: 800px;
-    margin: 30px auto;
     box-shadow: 8px 8px 8px rgba(0,0,0,0.05);
 }
 
@@ -493,7 +494,7 @@
     height: 140px;
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid #000;
+    border: 2px solid #e0e0e0;
 }
 
 .avatar-img {
@@ -504,7 +505,7 @@
 
 .nav-button.small {
     padding: 8px 20px;
-    border: 2px solid #000;
+    border: 1px solid #000;
     border-radius: 12px;
     background-color: #fff;
     font-weight: bold;
@@ -547,7 +548,7 @@
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    border: 3px solid #000;
+    border: 2px solid #403a3a;
     margin: 25px 0;
 }
 
@@ -572,7 +573,7 @@
 
 .recent-card {
     min-width: 130px;
-    border: 2px solid #000;
+    border: 1px solid #e0e0e0;
     border-radius: 15px;
     padding: 10px;
     background-color: #fff;
@@ -582,6 +583,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .recent-card:hover {
@@ -593,10 +595,11 @@
 .recent-poster-thumb {
     width: 100px;
     height: 140px;
-    border: 2px solid #333;
+    border: 1px solid #e0e0e0;
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .recent-poster-thumb img {
@@ -646,9 +649,10 @@
 /* --- GENRES --- */
 .genres-page .lists div[style*="overflow-x: auto"] {
     display: flex;
-    gap: 25px;
-    padding: 15px 5px;
+    gap: 12px;
+    padding: 10px 5px;
     scrollbar-width: thin;
+
 }
 
 .genres-page .movie-card {
@@ -659,9 +663,10 @@
     min-height: 380px;
     padding: 12px;
     background: #fff;
-    border: 2px solid #333;
+    border: 1px solid #e0e0e0;
     border-radius: 15px;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .genres-page .movie-poster-container {
@@ -669,7 +674,7 @@
     height: 260px;
     border-radius: 10px;
     overflow: hidden;
-    border-bottom: 2px solid #eee;
+    border: 1px solid #e0e0e0;
     margin-bottom: 12px;
 }
 
@@ -703,16 +708,15 @@
 }
 
 .genres-page h3 {
-    font-size: 22px;
-    margin-top: 30px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #333;
-    display: inline-block;
+    margin: 10px 0 1px 0;
+    display: block;
+    width: 100%;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 8px;
 }
 
 /* --- MovieDetail --- */
 .movie-detail-container {
-    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -720,7 +724,7 @@
 .movie-header-info {
     display: flex;
     gap: 35px;
-    border: 3px solid #000;
+    border: 2px solid #e0e0e0;
     border-radius: 25px;
     padding: 30px;
     background-color: #fff;
@@ -733,7 +737,7 @@
     height: 380px;
     object-fit: cover;
     border-radius: 15px;
-    border: 2px solid #000;
+    border: 1px solid #e0e0e0;
 }
 
 .movie-info-text {
@@ -777,7 +781,7 @@
 
 .status-select {
     padding: 10px 20px;
-    border: 2px solid #000;
+    border: 1px solid #e0e0e0;
     border-radius: 25px;
     font-size: 15px;
     font-weight: bold;
@@ -805,7 +809,7 @@
 }
 
 .add-review-box {
-    border: 2px solid #000;
+    border: 1px solid #e0e0e0;
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 30px;
@@ -959,4 +963,24 @@
     padding: 15px;
     border-radius: 15px;
     margin: 15px 0;
+}
+
+.home-container,
+.genres-page,
+.profile-main,
+.movie-detail-container,
+.admin-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    box-sizing: border-box;
+}
+
+.page-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+    box-sizing: border-box;
 }

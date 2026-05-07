@@ -6,13 +6,29 @@
 }
 
 body {
-    background-color: #414a4c;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    background-color: #414a4c;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background-image: url('https://avatars.mds.yandex.net/i?id=607deea7e4c1b990cfa3a9859f60f005144fb969-4919870-images-thumbs&n=13');
+    background-size: cover;
+    background-position: center;
+    filter: blur(15px) brightness(0.6);
+    z-index: -1;
 }
 
 a {

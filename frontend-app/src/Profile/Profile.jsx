@@ -92,6 +92,7 @@ function Profile ({ currentUser, handleLogout }) {
     const total = watchedCount + deferredCount + abandonedCount;
 
     return (
+        <div className="page-container">
         <div className="profile-main">
             <div className="profile-header-flex">
                 <div className="avatar-wrapper">
@@ -166,6 +167,7 @@ function Profile ({ currentUser, handleLogout }) {
                     <button className="delete-account-btn" onClick={handleDeleteMyProfile}>Удалить аккаунт</button>
                 </div>
             )}
+        </div>
         </div>
     );
 }

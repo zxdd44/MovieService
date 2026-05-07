@@ -50,7 +50,7 @@ function Genres({ isAdmin }) {
                         <div style={{ display: 'flex', gap: '10px' }}>
                             {isEditing && <button className="nav-button" onClick={addGenre}>+ Добавить</button>}
                             <button className="nav-button" onClick={() => setIsEditing(!isEditing)}>
-                                {isEditing ? "✅ Готово" : "⚙️ Редактировать"}
+                                {isEditing ? "✅ Готово" : "Редактировать"}
                             </button>
                         </div>
                     )}
