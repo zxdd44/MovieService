@@ -80,7 +80,7 @@ function MovieDetail ({ isAdmin, currentUser }) {
 
             <div className="movie-header-info">
                 <div className="movie-poster-large">
-                    <img src={movie.imageUrl || "https://img.freepik.com/premium-photo/subtle-white-vertical-lines-texture_1310085-60760.jpg?semt=ais_hybrid&w=740"} alt="poster" />
+                    <img src={movie.imageUrl || "https://ir.ozone.ru/s3/multimedia-1-e/7579533542.jpg"} alt="poster" />
                 </div>
                 <div className="movie-info-text">
                     <div className="movie-title-flex">
@@ -110,11 +110,6 @@ function MovieDetail ({ isAdmin, currentUser }) {
                         </select>
                     </div>
                 </div>
-            </div>
-
-            <div className="video-player-placeholder">
-                <p>▶️ Плеер готов к воспроизведению</p>
-                <small>{movie.title} ({movie.year})</small>
             </div>
 
             <div className="reviews-section">

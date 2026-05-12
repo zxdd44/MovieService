@@ -2,7 +2,6 @@ package com.example.movieservice.controller;
 
 import com.example.movieservice.model.User;
 import com.example.movieservice.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,26 +16,28 @@ import java.security.Principal;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(Principal principal) {
+    public ResponseEntity<User> login(Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String username = principal.getName();
 
         return userRepository.findByUsername(username)
-            .map(user -> ResponseEntity.ok(user))
+            .map(ResponseEntity::ok)
             .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<Object> register(@RequestBody User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
             return ResponseEntity.badRequest().body("Ошибка: Пользователь уже существует");
         }

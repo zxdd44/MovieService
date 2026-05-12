@@ -154,7 +154,11 @@ function Profile ({ currentUser, handleLogout }) {
                 {profileInfo.watchedMovies?.length > 0 ? profileInfo.watchedMovies.map(movie => (
                     <div key={movie.id} className="recent-card" onClick={() => navigate(`/movie/${movie.id}`)}>
                         <div className="recent-poster-thumb">
-                            <img src={movie.imageUrl} className="avatar-img" alt="" />
+                            <img
+                                src={movie.imageUrl || "https://ir.ozone.ru/s3/multimedia-1-e/7579533542.jpg"}
+                                className="avatar-img"
+                                alt="постер"
+                            />
                         </div>
                         <p className="recent-title">{movie.title}</p>
                         <p style={{fontSize: '11px', color: '#888'}}>{movie.year}</p>

@@ -89,7 +89,11 @@ function Genres({ isAdmin }) {
                                 {filteredMovies.length > 0 ? filteredMovies.map(movie => (
                                     <div key={movie.id} className="movie-card" style={{ minWidth: '200px', maxWidth: '200px', cursor: 'pointer' }} onClick={() => navigate(`/movie/${movie.id}`)}>
                                         <div className="movie-poster-container" style={{ height: '280px' }}>
-                                            {movie.imageUrl ? <img src={movie.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }} alt="p" /> : <div className="placeholder"></div>}
+                                            <img
+                                                src={movie.imageUrl || "https://ir.ozone.ru/s3/multimedia-1-e/7579533542.jpg"}
+                                                className="avatar-img"
+                                                alt="постер"
+                                            />
                                         </div>
                                         <h4 style={{ fontSize: '15px', margin: '10px 0 5px 0' }}>{movie.title}</h4>
                                         <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>{movie.director}, {movie.year}</p>

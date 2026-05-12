@@ -157,7 +157,11 @@ function Home ({ isAdmin, title }) {
                             </div>
                         )}
                         <div className="movie-poster-container">
-                            {movie.imageUrl ? <img src={movie.imageUrl} className="movie-poster-img" alt="постер" /> : <div className="loading-screen"></div>}
+                            <img
+                                src={movie.imageUrl || "https://ir.ozone.ru/s3/multimedia-1-e/7579533542.jpg"}
+                                className="movie-poster-img"
+                                alt="постер"
+                            />
                         </div>
                         <div className="movie-info">
                             <h3 style={{fontSize: '18px', margin: '0 0 10px 0'}}>{movie.title}</h3>

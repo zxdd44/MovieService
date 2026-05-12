@@ -10,9 +10,9 @@ class MovieFilterKeyTest {
 
     @Test
     void testEqualsAndHashCode() {
-        MovieFilterKey key1 = new MovieFilterKey("Nolan", "Action", 0, 10, "native");
-        MovieFilterKey key2 = new MovieFilterKey("Nolan", "Action", 0, 10, "native");
-        MovieFilterKey key3 = new MovieFilterKey("Tarantino", "Drama", 1, 20, "jpql");
+        MovieFilterKey key1 = new MovieFilterKey("Inception", "Nolan", "Action", 0, 10, "native");
+        MovieFilterKey key2 = new MovieFilterKey("Inception", "Nolan", "Action", 0, 10, "native");
+        MovieFilterKey key3 = new MovieFilterKey("Pulp Fiction", "Tarantino", "Drama", 1, 20, "jpql");
         assertEquals(key1, key1);
         assertEquals(key1, key2);
         assertNotEquals(key1, key3);
