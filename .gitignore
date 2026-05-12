@@ -110,3 +110,5 @@ HELP.md
 /db/
 /data/
 /logs/
+
+.env
