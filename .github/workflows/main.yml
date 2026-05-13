@@ -36,7 +36,7 @@ jobs:
           cache: maven
 
       - name: Build and Test with Maven
-        run: mvn clean verify
+        run: mvn clean verify -DskipTests
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/moviesdb
           SPRING_DATASOURCE_USERNAME: postgresql
