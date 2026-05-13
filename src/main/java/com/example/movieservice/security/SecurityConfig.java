@@ -62,9 +62,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173",
-            "https://movie-service-beryl.vercel.app",
-            "https://movie-service-56ffm5lf3-gfhgfhf-s-projects.vercel.app",
-            "movieservice-production-dd97.up.railway.app"));
+            "https://*.vercel.app",
+            "https://movieservice-production-dd97.up.railway.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
