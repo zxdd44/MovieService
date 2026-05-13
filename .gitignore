@@ -82,14 +82,6 @@ gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
 
-# Spring Boot
-**/application-*.properties
-**/application-*.yml
-!/src/main/resources/application.properties
-!/src/main/resources/application.yml
-**/application.properties
-**/application.yml
-
 # Test reports
 test-output/
 *.test
