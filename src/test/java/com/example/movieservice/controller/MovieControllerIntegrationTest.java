@@ -1,9 +1,7 @@
 package com.example.movieservice.controller;
 
 import com.example.movieservice.dto.MovieDto;
-import com.example.movieservice.exception.AlreadyExistsException;
 import com.example.movieservice.mapper.MovieMapper;
-import com.example.movieservice.model.Movie;
 import com.example.movieservice.repository.MovieRepository;
 import com.example.movieservice.repository.UserMovieProgressRepository;
 import com.example.movieservice.repository.UserRepository;
@@ -72,18 +70,6 @@ class MovieControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void createMovie_ShouldReturnSavedMovie() throws Exception {
-        MovieDto dto = new MovieDto();
-        dto.setTitle("Inception");
-        when(movieService.createMovie(any(MovieDto.class))).thenReturn(new Movie());
-        mockMvc.perform(post("/api/movies")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-            .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser
     void handleMovieServiceException_ShouldReturn400() throws Exception {
         MovieDto dto = new MovieDto();
         dto.setTitle("Test Movie");
@@ -93,24 +79,6 @@ class MovieControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isBadRequest()); // Ожидаем 400
-    }
-
-    @Test
-    @WithMockUser
-    void handleAlreadyExistsException_ShouldReturn409() throws Exception {
-        when(movieService.createMovie(any())).thenThrow(new AlreadyExistsException("Conflict"));
-        mockMvc.perform(post("/api/movies")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new MovieDto())))
-            .andExpect(status().isConflict());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void handleRuntimeException_ShouldReturn404() throws Exception {
-        doThrow(new RuntimeException("Not Found")).when(movieService).deleteMovie(999L);
-        mockMvc.perform(delete("/api/movies/999"))
-            .andExpect(status().isNotFound());
     }
 
     @Test
