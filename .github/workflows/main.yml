@@ -1,4 +1,4 @@
-name: Java CI/CD
+name: Java CI/CD with Railway
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -34,16 +35,29 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build and Test
+      - name: Build and Test with Maven
         run: mvn clean verify
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/moviesdb
           SPRING_DATASOURCE_USERNAME: postgresql
           SPRING_DATASOURCE_PASSWORD: password
 
-      - name: Build Docker Image
-        run: docker build -t my-movie-service .
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Trigger Render Deploy
-        if: github.ref == 'refs/heads/main'
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Healthcheck
+        run: |
+          echo "Waiting for app to start..."
+          sleep 60
+          curl -f https://movieservice-production-dd97.up.railway.app/actuator/health | grep "UP"
