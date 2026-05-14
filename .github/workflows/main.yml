@@ -52,16 +52,8 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgresql
           SPRING_DATASOURCE_PASSWORD: password
 
-  static-analysis:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Code Analysis
-        run: echo "Running static code analysis..." && sleep 5
-
   deploy:
-    needs: [test, static-analysis]
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
