@@ -1,15 +1,7 @@
-FROM node:22-bookworm-slim AS frontend-build
-WORKDIR /workspace/frontend
-COPY frontend-app/package*.json ./
-RUN npm ci
-COPY frontend-app/ ./
-RUN npm run build
-
 FROM maven:3.9.6-eclipse-temurin-21 AS backend-build
 WORKDIR /workspace
 COPY pom.xml ./
 COPY src ./src
-COPY --from=frontend-build /workspace/frontend/dist ./src/main/resources/static
 RUN mvn -B -DskipTests package
 
 FROM eclipse-temurin:21-jre-jammy
