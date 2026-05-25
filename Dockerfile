@@ -10,7 +10,6 @@ WORKDIR /app
 COPY --from=backend-build /workspace/target/*.jar app.jar
 
 ENV PORT=8080
-EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -fsS "http://localhost:${PORT}/actuator/health" | grep -q '"status":"UP"'
